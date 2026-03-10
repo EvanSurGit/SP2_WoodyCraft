@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'puzzle_service.dart';
 
 class CreatePuzzlePage extends StatefulWidget {
-  const CreatePuzzlePage({super.key});
-
   @override
   _CreatePuzzlePageState createState() => _CreatePuzzlePageState();
 }
@@ -20,36 +18,34 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajouter un Puzzle')),
+      appBar: AppBar(title: Text('Ajouter un Puzzle')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        // ScrollView ajouté pour éviter les erreurs "Bottom Overflow"
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
             child: Column(
               children: <Widget>[
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Nom'),
+                  decoration: InputDecoration(labelText: 'Nom'),
                   validator: (v) =>
                       (v == null || v.isEmpty) ? 'Champ requis' : null,
                   onSaved: (v) => _nom = v!,
                 ),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Description'),
+                  decoration: InputDecoration(labelText: 'Description'),
                   maxLines: 3,
                   validator: (v) =>
                       (v == null || v.isEmpty) ? 'Champ requis' : null,
                   onSaved: (v) => _description = v!,
                 ),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Image URL'),
+                  decoration: InputDecoration(labelText: 'Image URL'),
                   onSaved: (v) => _image = v ?? '',
                 ),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Prix'),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(labelText: 'Prix'),
+                  keyboardType: TextInputType.numberWithOptions(decimal: true),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Prix requis';
                     if (double.tryParse(v) == null) return 'Nombre invalide';
@@ -58,19 +54,20 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
                   onSaved: (v) => _prix = double.parse(v!),
                 ),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Catégorie'),
+                  decoration: InputDecoration(labelText: 'Catégorie'),
                   validator: (v) =>
                       (v == null || v.isEmpty) ? 'Champ requis' : null,
                   onSaved: (v) => _categorie = v!,
                 ),
-                const SizedBox(height: 30),
+                SizedBox(height: 30),
                 _isLoading
-                    ? const CircularProgressIndicator()
+                    ? CircularProgressIndicator()
                     : ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(200, 50)),
+                          minimumSize: Size(200, 50),
+                        ),
                         onPressed: _submitForm,
-                        child: const Text('Créer le Puzzle'),
+                        child: Text('Créer le Puzzle'),
                       ),
               ],
             ),
@@ -92,7 +89,9 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Erreur: $error'), backgroundColor: Colors.red),
+            content: Text('Erreur: $error'),
+            backgroundColor: Colors.red,
+          ),
         );
       });
     }

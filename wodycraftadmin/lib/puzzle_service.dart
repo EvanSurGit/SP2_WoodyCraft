@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-// Import pour détecter la plateforme
 
 class Puzzle {
   final int id;
@@ -25,7 +24,6 @@ class Puzzle {
       nom: json['nom'] ?? '',
       description: json['description'] ?? '',
       image: json['image'] ?? '',
-      // Gestion robuste du type double
       prix: (json['prix'] is int)
           ? (json['prix'] as int).toDouble()
           : (json['prix']?.toDouble() ?? 0.0),
@@ -35,25 +33,27 @@ class Puzzle {
 }
 
 class PuzzleService {
-  // Utilisez '10.0.2.2' pour l'émulateur Android, 'localhost' pour le Web/iOS
+  // Utilisation de 10.0.2.2 pour l'émulateur Android, localhost pour le web
   final String apiUrl = "http://localhost/woodycraft/public/api/puzzles";
 
   Future<List<Puzzle>> fetchPuzzles() async {
-    try {
-      final response = await http.get(Uri.parse(apiUrl));
-      if (response.statusCode == 200) {
-        List<dynamic> body = jsonDecode(response.body);
-        return body.map((dynamic item) => Puzzle.fromJson(item)).toList();
-      } else {
-        throw Exception('Erreur serveur: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Impossible de contacter l\'API: $e');
+    final response = await http.get(Uri.parse(apiUrl));
+
+    if (response.statusCode == 200) {
+      List<dynamic> body = jsonDecode(response.body);
+      return body.map((dynamic item) => Puzzle.fromJson(item)).toList();
+    } else {
+      throw Exception('Failed to load puzzles');
     }
   }
 
-  Future<Puzzle> createPuzzle(String nom, String description, String image,
-      double prix, String categorie) async {
+  Future<Puzzle> createPuzzle(
+    String nom,
+    String description,
+    String image,
+    double prix,
+    String categorie,
+  ) async {
     final response = await http.post(
       Uri.parse(apiUrl),
       headers: {'Content-Type': 'application/json'},
@@ -69,7 +69,7 @@ class PuzzleService {
     if (response.statusCode == 201) {
       return Puzzle.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Échec de la création: ${response.body}');
+      throw Exception('Failed to create puzzle');
     }
   }
 }

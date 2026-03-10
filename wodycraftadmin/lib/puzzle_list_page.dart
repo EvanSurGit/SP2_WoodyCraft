@@ -3,8 +3,6 @@ import 'puzzle_service.dart'; //
 import 'create_puzzle_page.dart'; //
 
 class PuzzleListPage extends StatefulWidget {
-  const PuzzleListPage({super.key});
-
   @override
   _PuzzleListPageState createState() => _PuzzleListPageState();
 }
