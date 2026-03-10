@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'puzzle_service.dart'; // Importer PuzzleService
-import 'create_puzzle_page.dart'; // Importer CreatePuzzlePage
+import 'puzzle_service.dart'; //
+import 'create_puzzle_page.dart'; //
 
 class PuzzleListPage extends StatefulWidget {
   const PuzzleListPage({super.key});
@@ -10,61 +10,47 @@ class PuzzleListPage extends StatefulWidget {
 }
 
 class _PuzzleListPageState extends State<PuzzleListPage> {
-  late Future<List<Puzzle>> futurePuzzles;
-  int _selectedIndex = 0;
-  String _affichage = "Accueil";
-
-  void _itemClique(int index) {
-    setState(() {
-      _selectedIndex = index;
-      switch (_selectedIndex) {
-        case 0:
-          {
-            _affichage = 'Accueil';
-          }
-        case 1:
-          {
-            _affichage = 'Gestion catalogue';
-          }
-        case 2:
-          {
-            _affichage = 'Gestion commandes';
-          }
-          break;
-      }
-    });
-  }
+  late Future<List<Puzzle>> futurePuzzles; //
+  int _selectedIndex = 1;
 
   @override
   void initState() {
     super.initState();
-    futurePuzzles = PuzzleService().fetchPuzzles(); // Appel de fetchPuzzles
+    _refreshPuzzles(); //
+  }
+
+  void _refreshPuzzles() {
+    setState(() {
+      futurePuzzles = PuzzleService().fetchPuzzles(); //
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestion du catalogue'),
+        title: const Text('Gestion du Catalogue'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshPuzzles,
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Accueil',
-          ),
+        currentIndex: _selectedIndex,
+        onTap: (index) => setState(() => _selectedIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
           BottomNavigationBarItem(
             icon: Icon(Icons.library_books),
             label: 'Catalogue',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.linear_scale),
+            icon: Icon(Icons.shopping_cart),
             label: 'Commandes',
           ),
         ],
-        backgroundColor: Colors.blue,
-        onTap: _itemClique,
-        currentIndex: _selectedIndex,
       ),
       body: FutureBuilder<List<Puzzle>>(
         future: futurePuzzles,
@@ -72,15 +58,30 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Erreur: ${snapshot.error}'));
+            return Center(child: Text('Erreur : ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('Aucun puzzle trouvé.'));
           } else {
             final puzzles = snapshot.data!;
-            return ListView.builder(
+            return ListView.separated(
               itemCount: puzzles.length,
+              separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
+                final puzzle = puzzles[index];
                 return ListTile(
-                  title: Text(puzzles[index].nom),
-                  subtitle: Text(puzzles[index].description),
+                  leading: CircleAvatar(child: Text(puzzle.nom[0])),
+                  title: Text(
+                    puzzle.nom,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(puzzle.description),
+                  trailing: Text(
+                    '${puzzle.prix.toStringAsFixed(2)} €',
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 );
               },
             );
@@ -88,19 +89,14 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => CreatePuzzlePage()),
-          ).then((value) {
-            if (value == true) {
-              // Rafraîchir la liste après ajout
-              setState(() {
-                futurePuzzles = PuzzleService()
-                    .fetchPuzzles(); // Récupérer à nouveau les puzzles
-              });
-            }
-          });
+          );
+          if (result == true) {
+            _refreshPuzzles(); //
+          }
         },
         child: const Icon(Icons.add),
       ),
