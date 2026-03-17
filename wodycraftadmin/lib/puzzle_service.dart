@@ -20,6 +20,7 @@ class Puzzle {
 
   factory Puzzle.fromJson(Map<String, dynamic> json) {
     return Puzzle(
+<<<<<<< HEAD
       id: json['id'],
       nom: json['nom'] ?? '',
       description: json['description'] ?? '',
@@ -28,13 +29,28 @@ class Puzzle {
           ? (json['prix'] as int).toDouble()
           : (json['prix']?.toDouble() ?? 0.0),
       categorie: json['categorie'] ?? '',
+=======
+      id: json['id'] ?? 0,
+      nom: json['nom']?.toString() ?? '',
+      description: json['description']?.toString() ?? '',
+      image: json['image']?.toString() ?? '',
+      // Gestion robuste du type double
+      prix:
+          double.tryParse(json['prix'].toString().replaceAll(',', '.')) ?? 0.0,
+      categorie: json['categorie']?.toString() ?? '',
+>>>>>>> 4b43d1046d4bbb01c7e4912ab4698270264a2ba1
     );
   }
 }
 
 class PuzzleService {
+<<<<<<< HEAD
   // Utilisation de 10.0.2.2 pour l'émulateur Android, localhost pour le web
   final String apiUrl = "http://localhost/woodycraft/public/api/puzzles";
+=======
+  // Utilisez '10.0.2.2' pour l'émulateur Android, 'localhost' pour le Web/iOS
+  final String apiUrl = "http://groupe2.lycee.local/api/puzzles";
+>>>>>>> 4b43d1046d4bbb01c7e4912ab4698270264a2ba1
 
   Future<List<Puzzle>> fetchPuzzles() async {
     final response = await http.get(Uri.parse(apiUrl));
