@@ -36,7 +36,7 @@ class Puzzle {
 
 class PuzzleService {
   // Utilisez '10.0.2.2' pour l'émulateur Android, 'localhost' pour le Web/iOS
-  final String apiUrl = "http://localhost/woodycraft/public/api/puzzles";
+  final String apiUrl = "http://localhost/SP2_Api/public/api/puzzles";
 
   Future<List<Puzzle>> fetchPuzzles() async {
     try {
