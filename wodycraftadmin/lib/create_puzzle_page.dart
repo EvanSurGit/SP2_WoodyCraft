@@ -4,111 +4,113 @@ import 'puzzle_service.dart';
 class CreatePuzzlePage extends StatefulWidget {
   const CreatePuzzlePage({super.key});
 
+  // ✅ FIX library_private_types_in_public_api (Ln 8) :
+  //    State<CreatePuzzlePage> au lieu de _CreatePuzzlePageState
   @override
-  _CreatePuzzlePageState createState() => _CreatePuzzlePageState();
+  State<CreatePuzzlePage> createState() => _CreatePuzzlePageState();
 }
 
 class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
-  // Clé globale pour contrôler l'état du formulaire [cite: 258, 261]
   final _formKey = GlobalKey<FormState>();
-
-  // Variables pour stocker les données saisies [cite: 261]
   String _nom = '';
   String _description = '';
   String _image = '';
   double _prix = 0.0;
   String _categorie = '';
 
+  // ✅ FIX use_build_context_synchronously (Ln 99, 103) :
+  //    logique async extraite dans _submit() avec guard `if (!mounted) return`
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+
+    try {
+      await PuzzleService().createPuzzle(
+        _nom,
+        _description,
+        _image,
+        _prix,
+        _categorie,
+      );
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        // ✅ FIX prefer_const_constructors (Ln 104, 105) : const SnackBar + const Text
+        const SnackBar(
+          content: Text('Erreur lors de la création'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ajouter un Puzzle'), // [cite: 38, 55]
+        // ✅ FIX prefer_const_constructors (Ln 26) : const Text
+        title: const Text('Ajouter un Puzzle'),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0), // [cite: 269, 276]
+        padding: const EdgeInsets.all(16.0),
         child: Form(
-          key: _formKey, // [cite: 277, 278]
+          key: _formKey,
           child: SingleChildScrollView(
             child: Column(
               children: <Widget>[
-                // Champ Nom [cite: 39, 56, 281]
+                // ── Nom ──────────────────────────────────────────────────────
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Nom'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Veuillez entrer un nom'; // [cite: 283, 284, 285]
-                    }
-                    return null;
-                  },
-                  onSaved: (value) => _nom = value!, // [cite: 295, 297]
+                  decoration: const InputDecoration(labelText: 'Nom'),
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? 'Veuillez entrer un nom'
+                      : null,
+                  onSaved: (value) => _nom = value!,
                 ),
-                // Champ Description [cite: 40, 58]
+
+                // ── Description ───────────────────────────────────────────────
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Description'),
+                  decoration: const InputDecoration(labelText: 'Description'),
                   maxLines: 3,
                   validator: (value) => (value == null || value.isEmpty)
                       ? 'Veuillez entrer une description'
                       : null,
                   onSaved: (value) => _description = value!,
                 ),
-                // Champ Image URL [cite: 41, 60]
+
+                // ── Image URL ─────────────────────────────────────────────────
                 TextFormField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Image URL (optionnelle)',
                   ),
                   onSaved: (value) => _image = value ?? '',
                 ),
-                // Champ Prix [cite: 42, 62]
+
+                // ── Prix ──────────────────────────────────────────────────────
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Prix'),
-                  keyboardType: TextInputType.number, // [cite: 349]
+                  decoration: const InputDecoration(labelText: 'Prix'),
+                  keyboardType: TextInputType.number,
                   validator: (value) => (value == null || value.isEmpty)
                       ? 'Veuillez entrer un prix'
                       : null,
-                  onSaved: (value) =>
-                      _prix = double.parse(value!), // [cite: 350]
+                  onSaved: (value) => _prix = double.parse(value!),
                 ),
-                // Champ Catégorie [cite: 43, 64]
+
+                // ── Catégorie ─────────────────────────────────────────────────
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Catégorie'),
+                  decoration: const InputDecoration(labelText: 'Catégorie'),
                   validator: (value) => (value == null || value.isEmpty)
                       ? 'Veuillez entrer une catégorie'
                       : null,
                   onSaved: (value) => _categorie = value!,
                 ),
-                SizedBox(height: 20), // [cite: 315]
-                // Bouton Créer [cite: 65, 316, 344]
-                ElevatedButton(
-                  onPressed: () {
-                    // Validation du formulaire [cite: 318, 351]
-                    if (_formKey.currentState!.validate()) {
-                      _formKey.currentState!.save(); // [cite: 318, 352]
 
-                      // Appel du service pour envoyer les données à Laravel [cite: 319, 353]
-                      PuzzleService()
-                          .createPuzzle(
-                            _nom,
-                            _description,
-                            _image,
-                            _prix,
-                            _categorie,
-                          )
-                          .then((puzzle) {
-                            // Succès: retour à la liste [cite: 338, 339, 354]
-                            Navigator.pop(context, true);
-                          })
-                          .catchError((error) {
-                            // Échec: notification d'erreur [cite: 340, 341, 342, 355]
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Erreur lors de la création'),
-                              ),
-                            );
-                          });
-                    }
-                  },
-                  child: Text('Créer'),
+                const SizedBox(height: 20),
+
+                // ── Bouton Créer ──────────────────────────────────────────────
+                ElevatedButton(
+                  onPressed: _submit, // méthode async séparée
+                  child: const Text('Créer'),
                 ),
               ],
             ),
