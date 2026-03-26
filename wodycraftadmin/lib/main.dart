@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
-import 'puzzle_list_page.dart'; // Importer la page d'affichage des puzzles
+import 'package:flutter/services.dart';
+import 'catalogue_page.dart';
 
 void main() {
-  runApp(MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -11,11 +19,21 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Puzzles',
+      title: 'PuzzleVault',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF2EDE6),
+        primaryColor: const Color(0xFFC17D2E),
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFFC17D2E),
+          secondary: Color(0xFFC17D2E),
+          surface: Colors.white,
+          background: Color(0xFFF2EDE6),
+        ),
+        useMaterial3: true,
       ),
-      home: PuzzleListPage(), // Affiche la liste des puzzles en page d'accueil
+      home: const CataloguePage(),
     );
   }
 }
