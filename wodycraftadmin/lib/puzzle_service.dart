@@ -25,7 +25,7 @@ class Puzzle {
     required this.prix,
     required this.stock,
   });
-
+  // evan
   factory Puzzle.fromJson(Map<String, dynamic> json) {
     return Puzzle(
       id: json['id'],
@@ -78,7 +78,7 @@ class PuzzleService {
 
   // ── GET /api/puzzles ─────────────────────────────────────────────────────
   // → controller : index()
-  // ✅ FIX Null check on null value : on utilise index() qui inclut le champ 'id'
+  //  FIX Null check on null value : on utilise index() qui inclut le champ 'id'
   //    (stockAll() ne retourne pas 'id', ce qui causait puzzle.id! == null)
   Future<List<Puzzle>> fetchPuzzles() async {
     final res = await http.get(Uri.parse(_puzzlesUrl));

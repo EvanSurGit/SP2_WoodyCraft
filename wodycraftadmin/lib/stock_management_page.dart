@@ -149,6 +149,7 @@ class _StockManagementPageState extends State<StockManagementPage>
     });
   }
 
+  //evan
   // ── AJUSTER LE STOCK DE +1 OU -1 ─────────────────────────────────────────
   // delta = +1 pour augmenter, -1 pour diminuer
   Future<void> _adjust(Puzzle puzzle, int delta) async {
