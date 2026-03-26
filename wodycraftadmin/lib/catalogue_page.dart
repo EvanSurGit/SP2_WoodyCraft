@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'puzzle_service.dart';
 import 'create_puzzle_page.dart';
 import 'puzzle_list_page.dart';
+import 'edit_puzzle_page.dart'; // <-- NOUVEL IMPORT OBLIGATOIRE ICI
 
 // ─── Palette de couleurs centralisée ────────────────────────────────────────
 class AppColors {
@@ -200,11 +201,28 @@ class _CataloguePageState extends State<CataloguePage> {
                       crossAxisCount: 2,
                       crossAxisSpacing: 14,
                       mainAxisSpacing: 14,
-                      childAspectRatio: 0.72,
+                      childAspectRatio: 0.95, 
                     ),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
-                      return _PuzzleCard(puzzle: filtered[index]);
+                      // --- MAGIE DU CLIC ICI ---
+                      return GestureDetector(
+                        onTap: () async {
+                          // Ouvre la page EditPuzzlePage avec le puzzle sélectionné
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => EditPuzzlePage(puzzle: filtered[index]),
+                            ),
+                          );
+                          // Rafraîchit la liste si une modif ou suppression a eu lieu
+                          if (result == true) {
+                            _refreshData();
+                          }
+                        },
+                        child: _PuzzleCard(puzzle: filtered[index]),
+                      );
+                      // -------------------------
                     },
                   );
                 },
@@ -277,71 +295,72 @@ class _PuzzleCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image + badge stock
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                child: puzzle.pathImage.isEmpty
-                    ? _placeholder()
-                    : Image.network(
-                        puzzle.imageUrl,
-                        height: 145,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _placeholder(),
+          // Image + badge stock (On utilise Expanded pour qu'il s'adapte au carré)
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand, // Force l'image à remplir l'Expanded
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+                  child: puzzle.pathImage.isEmpty
+                      ? _placeholder()
+                      : Image.network(
+                          puzzle.imageUrl,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _placeholder(),
+                        ),
+                ),
+                // Badge "Stock: XX"
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.92),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 4),
+                      ],
+                    ),
+                    child: Text(
+                      'Stock: ${puzzle.stock}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: puzzle.stock <= 5
+                            ? Colors.red.shade600
+                            : AppColors.textPrimary,
                       ),
-              ),
-              // Badge "Stock: XX"
-              Positioned(
-                top: 10,
-                right: 10,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.92),
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 4),
-                    ],
-                  ),
-                  child: Text(
-                    'Stock: ${puzzle.stock}',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: puzzle.stock <= 5
-                          ? Colors.red.shade600
-                          : AppColors.textPrimary,
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           // Infos
           Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   puzzle.nom,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13, // Un poil plus petit
                     fontWeight: FontWeight.w700,
                     color: AppColors.textPrimary,
-                    height: 1.3,
+                    height: 1.2,
                   ),
-                  maxLines: 2,
+                  maxLines: 1, // Une seule ligne pour éviter que ça casse le design
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
                 Text(
                   '${puzzle.prix.toStringAsFixed(2)} €',
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14, // Un poil plus petit
                     fontWeight: FontWeight.w800,
                     color: AppColors.textPrice,
                   ),
@@ -356,11 +375,9 @@ class _PuzzleCard extends StatelessWidget {
 
   Widget _placeholder() {
     return Container(
-      height: 145,
-      width: double.infinity,
       color: const Color(0xFFE8E0D5),
       child: const Center(
-        child: Icon(Icons.extension_rounded, color: Color(0xFFBBAA96), size: 44),
+        child: Icon(Icons.extension_rounded, color: Color(0xFFBBAA96), size: 36),
       ),
     );
   }
