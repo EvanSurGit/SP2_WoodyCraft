@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 // ─── SEUILS D'ALERTE ─────────────────────────────────────────────────────────
 class StockThresholds {
   static const int rupture = 0; // Rouge  : rupture de stock
-  static const int faible = 5; // Orange : stock faible
+  static const int faible = 5;  // Orange : stock faible
 }
 
 // ─── MODÈLE PUZZLE ───────────────────────────────────────────────────────────
@@ -25,33 +25,71 @@ class Puzzle {
     required this.prix,
     required this.stock,
   });
-  // evan
+
+  // ✅ FIX : copyWith permet de créer une copie du puzzle avec un seul champ modifié
+  // Utilisé dans _updateLocal() de stock_management_page.dart
+  Puzzle copyWith({
+    int? id,
+    String? nom,
+    String? description,
+    String? image,
+    double? prix,
+    int? stock,
+  }) {
+    return Puzzle(
+      id: id ?? this.id,
+      nom: nom ?? this.nom,
+      description: description ?? this.description,
+      image: image ?? this.image,
+      prix: prix ?? this.prix,
+      stock: stock ?? this.stock,
+    );
+  }
+
+  // ✅ FIX : suppression du champ 'categorie' qui n'existe pas dans le constructeur
+  // Laravel renvoie "path_image" ou "image" selon l'endpoint
   factory Puzzle.fromJson(Map<String, dynamic> json) {
     return Puzzle(
-      id: json['id'] ?? 0,
+      id: json['id'],
       nom: json['nom']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
-      image: json['image']?.toString() ?? '',
-      // Gestion robuste du type double
-      prix:
-          double.tryParse(json['prix'].toString().replaceAll(',', '.')) ?? 0.0,
-      categorie: json['categorie']?.toString() ?? '',
+      image: json['path_image']?.toString() ?? json['image']?.toString() ?? '',
+      prix: double.tryParse(json['prix'].toString().replaceAll(',', '.')) ?? 0.0,
+      stock: int.tryParse(json['stock'].toString()) ?? 0,
+    );
+  }
+}
+
+// ─── MODÈLE PUZZLE ALERTE ────────────────────────────────────────────────────
+// ✅ FIX : classe manquante utilisée par fetchStockBas() et fetchRuptures()
+// Modèle simplifié : on n'a besoin que de l'id, du nom et du stock pour les alertes
+class PuzzleAlerte {
+  final int id;
+  final String nom;
+  final int stock;
+
+  const PuzzleAlerte({
+    required this.id,
+    required this.nom,
+    required this.stock,
+  });
+
+  factory PuzzleAlerte.fromJson(Map<String, dynamic> json) {
+    return PuzzleAlerte(
+      id: json['id'] ?? 0,
+      nom: json['nom']?.toString() ?? '',
+      stock: int.tryParse(json['stock'].toString()) ?? 0,
     );
   }
 }
 
 // ─── SERVICE API ─────────────────────────────────────────────────────────────
 class PuzzleService {
-  // Utilisez '10.0.2.2' pour l'émulateur Android, 'localhost' pour le Web/iOS
-  final String apiUrl = "http://groupe2.lycee.local/api/puzzles";
-  final String _base = 'http://localhost/SP2_Api/public/api';
+  final String _base = 'http://groupe2.lycee.local/api';
 
   String get _puzzlesUrl => '$_base/puzzles';
 
-  // ── GET /api/puzzles ─────────────────────────────────────────────────────
-  // → controller : index()
-  //  FIX Null check on null value : on utilise index() qui inclut le champ 'id'
-  //    (stockAll() ne retourne pas 'id', ce qui causait puzzle.id! == null)
+  // ── GET /api/puzzles ──────────────────────────────────────────────────────
   Future<List<Puzzle>> fetchPuzzles() async {
     final res = await http.get(Uri.parse(_puzzlesUrl));
     if (res.statusCode == 200) {
@@ -63,8 +101,6 @@ class PuzzleService {
   }
 
   // ── GET /api/puzzles/alertes/stock-bas ────────────────────────────────────
-  // → controller : stockBas()
-  // Retourne les puzzles avec 0 < stock < 5
   Future<List<PuzzleAlerte>> fetchStockBas() async {
     final res = await http.get(Uri.parse('$_puzzlesUrl/alertes/stock-bas'));
     if (res.statusCode == 200) {
@@ -76,8 +112,6 @@ class PuzzleService {
   }
 
   // ── GET /api/puzzles/alertes/ruptures ─────────────────────────────────────
-  // → controller : ruptures()
-  // Retourne les puzzles avec stock == 0
   Future<List<PuzzleAlerte>> fetchRuptures() async {
     final res = await http.get(Uri.parse('$_puzzlesUrl/alertes/ruptures'));
     if (res.statusCode == 200) {
@@ -89,8 +123,6 @@ class PuzzleService {
   }
 
   // ── PATCH /api/puzzles/{id}/stock ─────────────────────────────────────────
-  // → controller : updateStock()
-  // Met à jour uniquement le stock d'un puzzle
   Future<Puzzle> updateStock(int id, int nouveauStock) async {
     final res = await http.patch(
       Uri.parse('$_puzzlesUrl/$id/stock'),
@@ -105,7 +137,6 @@ class PuzzleService {
   }
 
   // ── POST /api/puzzles ─────────────────────────────────────────────────────
-  // → controller : store()
   Future<Puzzle> createPuzzle(
     String nom,
     String description,

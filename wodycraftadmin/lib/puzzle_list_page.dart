@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'puzzle_service.dart';
 import 'create_puzzle_page.dart';
+import 'bottom_nav_bar.dart';
 
 class PuzzleListPage extends StatefulWidget {
   const PuzzleListPage({super.key});
-
   @override
   _PuzzleListPageState createState() => _PuzzleListPageState();
 }
@@ -21,12 +21,14 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('WoodyCraft Admin')),
+      appBar: AppBar(title: const Text('WoodyCraft Admin')),
+      // ✅ Navbar partagée, currentIndex: 1 = onglet "Puzzles" actif
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 1),
       body: FutureBuilder<List<Puzzle>>(
         future: futurePuzzles,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Erreur: ${snapshot.error}'));
           } else {
@@ -55,7 +57,7 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
             });
           }
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }

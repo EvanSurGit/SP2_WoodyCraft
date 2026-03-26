@@ -444,52 +444,67 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   // ── Bottom nav ─────────────────────────────────────────────────────────────
 
-  Widget _buildBottomNav() {
-    final items = [
-      {'icon': Icons.grid_view_rounded, 'label': 'Dashboard'},
-      {'icon': Icons.extension_outlined, 'label': 'Puzzles'},
-      {'icon': Icons.shopping_bag_outlined, 'label': 'Commandes'},
-      {'icon': Icons.inventory_2_outlined, 'label': 'Stocks'},
-    ];
+Widget _buildBottomNav() {
+  final items = [
+    {'icon': Icons.grid_view_rounded, 'label': 'Dashboard'},
+    {'icon': Icons.extension_outlined, 'label': 'Puzzles'},
+    {'icon': Icons.shopping_bag_outlined, 'label': 'Commandes'},
+    {'icon': Icons.inventory_2_outlined, 'label': 'Stocks'},
+  ];
 
-    return Container(
-      decoration: const BoxDecoration(color: _dark),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(items.length, (i) {
-              final selected = i == _selectedIndex;
-              return GestureDetector(
-                onTap: () => setState(() => _selectedIndex = i),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      items[i]['icon'] as IconData,
+  return Container(
+    decoration: const BoxDecoration(color: _dark),
+    child: SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: List.generate(items.length, (i) {
+            final selected = i == _selectedIndex;
+            return GestureDetector(
+              onTap: () {
+                // ✅ Navigation selon l'onglet cliqué
+                if (i == 0) {
+                  setState(() => _selectedIndex = 0); // Dashboard = déjà là
+                } else if (i == 1) {
+                  setState(() => _selectedIndex = 1);
+                  Navigator.pushNamed(context, '/puzzles');
+                } else if (i == 2) {
+                  setState(() => _selectedIndex = 2);
+                  Navigator.pushNamed(context, '/commandes');
+                } else if (i == 3) {
+                  setState(() => _selectedIndex = 3);
+                  // ✅ Navigue vers la page de gestion des stocks
+                  Navigator.pushNamed(context, '/stocks');
+                }
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    items[i]['icon'] as IconData,
+                    color: selected ? _gold : Colors.white54,
+                    size: 22,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    items[i]['label'] as String,
+                    style: TextStyle(
+                      fontSize: 11,
                       color: selected ? _gold : Colors.white54,
-                      size: 22,
+                      fontWeight:
+                          selected ? FontWeight.bold : FontWeight.normal,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      items[i]['label'] as String,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: selected ? _gold : Colors.white54,
-                        fontWeight:
-                            selected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';            
 import 'package:flutter/services.dart';
 import 'puzzle_service.dart';
+import 'bottom_nav_bar.dart';
 
 // ════════════════════════════════════════════════════════════════════════════
 //  PAGE GESTION DES STOCKS
