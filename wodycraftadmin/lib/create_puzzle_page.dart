@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'puzzle_service.dart';
 
 class CreatePuzzlePage extends StatefulWidget {
+  const CreatePuzzlePage({super.key});
+
+  // ✅ FIX library_private_types_in_public_api (Ln 8) :
+  //    State<CreatePuzzlePage> au lieu de _CreatePuzzlePageState
   @override
-  _CreatePuzzlePageState createState() => _CreatePuzzlePageState();
+  State<CreatePuzzlePage> createState() => _CreatePuzzlePageState();
 }
 
 class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
@@ -13,87 +17,106 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
   String _image = '';
   double _prix = 0.0;
   String _categorie = '';
-  bool _isLoading = false;
+
+  // ✅ FIX use_build_context_synchronously (Ln 99, 103) :
+  //    logique async extraite dans _submit() avec guard `if (!mounted) return`
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
+
+    try {
+      await PuzzleService().createPuzzle(
+        _nom,
+        _description,
+        _image,
+        _prix,
+        _categorie,
+      );
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        // ✅ FIX prefer_const_constructors (Ln 104, 105) : const SnackBar + const Text
+        const SnackBar(
+          content: Text('Erreur lors de la création'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Ajouter un Puzzle')),
+      appBar: AppBar(
+        // ✅ FIX prefer_const_constructors (Ln 26) : const Text
+        title: const Text('Ajouter un Puzzle'),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
             child: Column(
               children: <Widget>[
+                // ── Nom ──────────────────────────────────────────────────────
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Nom'),
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Champ requis' : null,
-                  onSaved: (v) => _nom = v!,
+                  decoration: const InputDecoration(labelText: 'Nom'),
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? 'Veuillez entrer un nom'
+                      : null,
+                  onSaved: (value) => _nom = value!,
                 ),
+
+                // ── Description ───────────────────────────────────────────────
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Description'),
+                  decoration: const InputDecoration(labelText: 'Description'),
                   maxLines: 3,
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Champ requis' : null,
-                  onSaved: (v) => _description = v!,
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? 'Veuillez entrer une description'
+                      : null,
+                  onSaved: (value) => _description = value!,
                 ),
+
+                // ── Image URL ─────────────────────────────────────────────────
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Image URL'),
-                  onSaved: (v) => _image = v ?? '',
+                  decoration: const InputDecoration(
+                    labelText: 'Image URL (optionnelle)',
+                  ),
+                  onSaved: (value) => _image = value ?? '',
                 ),
+
+                // ── Prix ──────────────────────────────────────────────────────
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Prix'),
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  validator: (v) {
-                    if (v == null || v.isEmpty) return 'Prix requis';
-                    if (double.tryParse(v) == null) return 'Nombre invalide';
-                    return null;
-                  },
-                  onSaved: (v) => _prix = double.parse(v!),
+                  decoration: const InputDecoration(labelText: 'Prix'),
+                  keyboardType: TextInputType.number,
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? 'Veuillez entrer un prix'
+                      : null,
+                  onSaved: (value) => _prix = double.parse(value!),
                 ),
+
+                // ── Catégorie ─────────────────────────────────────────────────
                 TextFormField(
-                  decoration: InputDecoration(labelText: 'Catégorie'),
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? 'Champ requis' : null,
-                  onSaved: (v) => _categorie = v!,
+                  decoration: const InputDecoration(labelText: 'Catégorie'),
+                  validator: (value) => (value == null || value.isEmpty)
+                      ? 'Veuillez entrer une catégorie'
+                      : null,
+                  onSaved: (value) => _categorie = value!,
                 ),
-                SizedBox(height: 30),
-                _isLoading
-                    ? CircularProgressIndicator()
-                    : ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: Size(200, 50),
-                        ),
-                        onPressed: _submitForm,
-                        child: Text('Créer le Puzzle'),
-                      ),
+
+                const SizedBox(height: 20),
+
+                // ── Bouton Créer ──────────────────────────────────────────────
+                ElevatedButton(
+                  onPressed: _submit, // méthode async séparée
+                  child: const Text('Créer'),
+                ),
               ],
             ),
           ),
         ),
       ),
     );
-  }
-
-  void _submitForm() {
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-      setState(() => _isLoading = true);
-
-      PuzzleService()
-          .createPuzzle(_nom, _description, _image, _prix, _categorie)
-          .then((_) => Navigator.pop(context, true))
-          .catchError((error) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur: $error'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      });
-    }
   }
 }

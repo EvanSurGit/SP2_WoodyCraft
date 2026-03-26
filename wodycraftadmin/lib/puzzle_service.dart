@@ -1,23 +1,31 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
 
+// ─── SEUILS D'ALERTE ─────────────────────────────────────────────────────────
+class StockThresholds {
+  static const int rupture = 0; // Rouge  : rupture de stock
+  static const int faible = 5; // Orange : stock faible
+}
+
+// ─── MODÈLE PUZZLE ───────────────────────────────────────────────────────────
 class Puzzle {
-  final int id;
+  final int? id;
   final String nom;
   final String description;
   final String image;
   final double prix;
-  final String categorie;
+  final int stock;
 
-  Puzzle({
-    required this.id,
+  const Puzzle({
+    this.id,
     required this.nom,
     required this.description,
-    this.image = '',
-    this.prix = 0.0,
-    this.categorie = '',
+    required this.image,
+    required this.prix,
+    required this.stock,
   });
-
+  // evan
   factory Puzzle.fromJson(Map<String, dynamic> json) {
     return Puzzle(
       id: json['id'] ?? 0,
@@ -32,21 +40,72 @@ class Puzzle {
   }
 }
 
+// ─── SERVICE API ─────────────────────────────────────────────────────────────
 class PuzzleService {
   // Utilisez '10.0.2.2' pour l'émulateur Android, 'localhost' pour le Web/iOS
   final String apiUrl = "http://groupe2.lycee.local/api/puzzles";
+  final String _base = 'http://localhost/SP2_Api/public/api';
 
+  String get _puzzlesUrl => '$_base/puzzles';
+
+  // ── GET /api/puzzles ─────────────────────────────────────────────────────
+  // → controller : index()
+  //  FIX Null check on null value : on utilise index() qui inclut le champ 'id'
+  //    (stockAll() ne retourne pas 'id', ce qui causait puzzle.id! == null)
   Future<List<Puzzle>> fetchPuzzles() async {
-    final response = await http.get(Uri.parse(apiUrl));
-
-    if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
-      return body.map((dynamic item) => Puzzle.fromJson(item)).toList();
-    } else {
-      throw Exception('Failed to load puzzles');
+    final res = await http.get(Uri.parse(_puzzlesUrl));
+    if (res.statusCode == 200) {
+      return (jsonDecode(res.body) as List)
+          .map((e) => Puzzle.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
+    throw Exception('fetchPuzzles – Erreur ${res.statusCode}: ${res.body}');
   }
 
+  // ── GET /api/puzzles/alertes/stock-bas ────────────────────────────────────
+  // → controller : stockBas()
+  // Retourne les puzzles avec 0 < stock < 5
+  Future<List<PuzzleAlerte>> fetchStockBas() async {
+    final res = await http.get(Uri.parse('$_puzzlesUrl/alertes/stock-bas'));
+    if (res.statusCode == 200) {
+      return (jsonDecode(res.body) as List)
+          .map((e) => PuzzleAlerte.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    throw Exception('fetchStockBas – Erreur ${res.statusCode}: ${res.body}');
+  }
+
+  // ── GET /api/puzzles/alertes/ruptures ─────────────────────────────────────
+  // → controller : ruptures()
+  // Retourne les puzzles avec stock == 0
+  Future<List<PuzzleAlerte>> fetchRuptures() async {
+    final res = await http.get(Uri.parse('$_puzzlesUrl/alertes/ruptures'));
+    if (res.statusCode == 200) {
+      return (jsonDecode(res.body) as List)
+          .map((e) => PuzzleAlerte.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    throw Exception('fetchRuptures – Erreur ${res.statusCode}: ${res.body}');
+  }
+
+  // ── PATCH /api/puzzles/{id}/stock ─────────────────────────────────────────
+  // → controller : updateStock()
+  // Met à jour uniquement le stock d'un puzzle
+  Future<Puzzle> updateStock(int id, int nouveauStock) async {
+    final res = await http.patch(
+      Uri.parse('$_puzzlesUrl/$id/stock'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'stock': nouveauStock}),
+    );
+    if (res.statusCode == 200) {
+      return Puzzle.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+    }
+    developer.log('updateStock erreur: ${res.body}', name: 'PuzzleService');
+    throw Exception('updateStock – Erreur ${res.statusCode}: ${res.body}');
+  }
+
+  // ── POST /api/puzzles ─────────────────────────────────────────────────────
+  // → controller : store()
   Future<Puzzle> createPuzzle(
     String nom,
     String description,
@@ -54,22 +113,22 @@ class PuzzleService {
     double prix,
     String categorie,
   ) async {
-    final response = await http.post(
-      Uri.parse(apiUrl),
+    final res = await http.post(
+      Uri.parse(_puzzlesUrl),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'nom': nom,
         'description': description,
-        'image': image,
         'prix': prix,
-        'categorie': categorie,
+        'categorie_id': 1,
+        'stock': 10,
+        'path_image': image.isEmpty ? null : image,
       }),
     );
-
-    if (response.statusCode == 201) {
-      return Puzzle.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('Failed to create puzzle');
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      return Puzzle.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
     }
+    developer.log('createPuzzle erreur: ${res.body}', name: 'PuzzleService');
+    throw Exception('createPuzzle – Erreur ${res.statusCode}: ${res.body}');
   }
 }

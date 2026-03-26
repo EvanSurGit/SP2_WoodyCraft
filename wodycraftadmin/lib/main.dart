@@ -1,13 +1,16 @@
 
 import 'package:flutter/material.dart';
 import 'dashboardadmin.dart';
+import 'stock_management_page.dart';
+import 'puzzle_list_page.dart';
+import 'create_puzzle_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const WoodyCraftAdmin());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class WoodyCraftAdmin extends StatelessWidget {
+  const WoodyCraftAdmin({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +25,10 @@ class MyApp extends StatelessWidget {
         '/': (context) => const PuzzleListPage(),
         '/dashboard': (context) => AdminDashboard(),
       },
+      title: 'WoodyCraft Admin',
+      theme: ThemeData(primaryColor: Colors.brown),
+      home: const HomePage(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }

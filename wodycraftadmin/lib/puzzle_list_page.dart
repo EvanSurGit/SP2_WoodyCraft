@@ -1,85 +1,42 @@
 import 'package:flutter/material.dart';
-import 'puzzle_service.dart'; //
-import 'create_puzzle_page.dart'; //
+import 'puzzle_service.dart';
+import 'create_puzzle_page.dart';
 
 class PuzzleListPage extends StatefulWidget {
+  const PuzzleListPage({super.key});
+
   @override
   _PuzzleListPageState createState() => _PuzzleListPageState();
 }
 
 class _PuzzleListPageState extends State<PuzzleListPage> {
-  late Future<List<Puzzle>> futurePuzzles; //
-  int _selectedIndex = 1;
+  late Future<List<Puzzle>> futurePuzzles;
 
   @override
   void initState() {
     super.initState();
-    _refreshPuzzles(); //
-  }
-
-  void _refreshPuzzles() {
-    setState(() {
-      futurePuzzles = PuzzleService().fetchPuzzles(); //
-    });
+    futurePuzzles = PuzzleService().fetchPuzzles();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Gestion du Catalogue'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _refreshPuzzles,
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Accueil'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books),
-            label: 'Catalogue',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Commandes',
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text('WoodyCraft Admin')),
       body: FutureBuilder<List<Puzzle>>(
         future: futurePuzzles,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Erreur : ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Aucun puzzle trouvé.'));
+            return Center(child: Text('Erreur: ${snapshot.error}'));
           } else {
             final puzzles = snapshot.data!;
-            return ListView.separated(
+            return ListView.builder(
               itemCount: puzzles.length,
-              separatorBuilder: (context, index) => const Divider(),
               itemBuilder: (context, index) {
-                final puzzle = puzzles[index];
                 return ListTile(
-                  leading: CircleAvatar(child: Text(puzzle.nom[0])),
-                  title: Text(
-                    puzzle.nom,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(puzzle.description),
-                  trailing: Text(
-                    '${puzzle.prix.toStringAsFixed(2)} €',
-                    style: const TextStyle(
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  title: Text(puzzles[index].nom),
+                  subtitle: Text(puzzles[index].description),
                 );
               },
             );
@@ -88,15 +45,17 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await Navigator.push(
+          bool? result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => CreatePuzzlePage()),
           );
           if (result == true) {
-            _refreshPuzzles(); //
+            setState(() {
+              futurePuzzles = PuzzleService().fetchPuzzles();
+            });
           }
         },
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
       ),
     );
   }

@@ -1,0 +1,37 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0" version="29.6.3">
+  <diagram name="Use Case WoodyCraft" id="4JWrAqD4VhWniWn5NLhB">
+    <mxGraphModel dx="1188" dy="578" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="mo-esx-uloORtSZ-W_Zs-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;fontSize=11;fontColor=#666666;verticalAlign=top;" value="Fonctions accessibles après authentification" vertex="1">
+          <mxGeometry height="385" width="450" x="410" y="475" as="geometry" />
+        </mxCell>
+        <mxCell id="mo-esx-uloORtSZ-W_Zs-3" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Administrateur" vertex="1">
+          <mxGeometry height="60" width="30" x="250" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="mo-esx-uloORtSZ-W_Zs-4" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;" value="S&#39;authentifier" vertex="1">
+          <mxGeometry height="60" width="200" x="535" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="mo-esx-uloORtSZ-W_Zs-5" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" value="Gérer le catalogue" vertex="1">
+          <mxGeometry height="55" width="220" x="525" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="mo-esx-uloORtSZ-W_Zs-6" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" value="Gérer les commandes" vertex="1">
+          <mxGeometry height="55" width="220" x="525" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="mo-esx-uloORtSZ-W_Zs-7" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" value="Gérer les stocks" vertex="1">
+          <mxGeometry height="55" width="220" x="525" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="mo-esx-uloORtSZ-W_Zs-8" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;" value="Consulter tableau de bord" vertex="1">
+          <mxGeometry height="55" width="240" x="515" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="mo-esx-uloORtSZ-W_Zs-9" edge="1" parent="1" source="mo-esx-uloORtSZ-W_Zs-3" target="mo-esx-uloORtSZ-W_Zs-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="mo-esx-uloORtSZ-W_Zs-14" edge="1" parent="1" source="mo-esx-uloORtSZ-W_Zs-4" style="edgeStyle=orthogonalEdgeStyle;endArrow=block;endFill=1;fontSize=11;fontStyle=2;" target="mo-esx-uloORtSZ-W_Zs-2" value="obligatoire">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
