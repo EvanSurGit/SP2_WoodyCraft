@@ -1,8 +1,9 @@
+
 import 'package:flutter/material.dart';
-import 'puzzle_list_page.dart'; // Importer la page d'affichage des puzzles
+import 'dashboardadmin.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -11,11 +12,43 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Puzzles',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: PuzzleListPage(), // Affiche la liste des puzzles en page d'accueil
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const PuzzleListPage(),
+        '/dashboard': (context) => AdminDashboard(),
+      },
+    );
+  }
+}
+
+class PuzzleListPage extends StatelessWidget {
+  const PuzzleListPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Liste des Puzzles"),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pushNamed(context, '/dashboard');
+            },
+            child: const Text("Dashboard Admin"),
+          ),
+        ],
+      ),
+      body: const Center(
+        child: Text(
+          "Contenu de la liste des puzzles ici",
+          style: TextStyle(fontSize: 18),
+        ),
+      ),
     );
   }
 }
