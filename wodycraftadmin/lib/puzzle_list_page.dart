@@ -22,7 +22,7 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('WoodyCraft Admin')),
-      // ✅ Navbar partagée, currentIndex: 1 = onglet "Puzzles" actif
+      //  Navbar partagée, currentIndex: 1 = onglet "Puzzles" actif
       bottomNavigationBar: const AppBottomNavBar(currentIndex: 1),
       body: FutureBuilder<List<Puzzle>>(
         future: futurePuzzles,

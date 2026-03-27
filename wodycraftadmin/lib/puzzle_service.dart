@@ -26,7 +26,6 @@ class Puzzle {
     required this.stock,
   });
 
-  // ✅ FIX : copyWith permet de créer une copie du puzzle avec un seul champ modifié
   // Utilisé dans _updateLocal() de stock_management_page.dart
   Puzzle copyWith({
     int? id,
@@ -46,7 +45,6 @@ class Puzzle {
     );
   }
 
-  // ✅ FIX : suppression du champ 'categorie' qui n'existe pas dans le constructeur
   // Laravel renvoie "path_image" ou "image" selon l'endpoint
   factory Puzzle.fromJson(Map<String, dynamic> json) {
     return Puzzle(
@@ -61,7 +59,6 @@ class Puzzle {
 }
 
 // ─── MODÈLE PUZZLE ALERTE ────────────────────────────────────────────────────
-// ✅ FIX : classe manquante utilisée par fetchStockBas() et fetchRuptures()
 // Modèle simplifié : on n'a besoin que de l'id, du nom et du stock pour les alertes
 class PuzzleAlerte {
   final int id;

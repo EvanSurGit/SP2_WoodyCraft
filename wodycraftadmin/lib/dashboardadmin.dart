@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dashboard_service.dart';
+import 'bottom_nav_bar.dart'; // ✅ Import de la navbar partagée
 
 class AdminDashboard extends StatefulWidget {
   @override
@@ -8,16 +9,15 @@ class AdminDashboard extends StatefulWidget {
 
 class _AdminDashboardState extends State<AdminDashboard> {
   final DashboardService service = DashboardService();
-  int _selectedIndex = 0;
 
   // ── Palette ────────────────────────────────────────────────────────────────
-  static const Color _bg       = Color(0xFFF5F0E8);
-  static const Color _dark     = Color(0xFF2C1F14);
-  static const Color _gold     = Color(0xFFC8922A);
-  static const Color _bar      = Color(0xFFD4A96A);
-  static const Color _cardBg   = Colors.white;
+  static const Color _bg = Color(0xFFF5F0E8);
+  static const Color _dark = Color(0xFF2C1F14);
+  static const Color _gold = Color(0xFFC8922A);
+  static const Color _bar = Color(0xFFD4A96A);
+  static const Color _cardBg = Colors.white;
   static const Color _redLight = Color(0xFFFFECEC);
-  static const Color _redText  = Color(0xFFD94040);
+  static const Color _redText = Color(0xFFD94040);
 
   Color _statusColor(String status) {
     switch (status.toLowerCase()) {
@@ -59,6 +59,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bg,
+      // ✅ Navbar partagée, currentIndex: 0 = onglet "Dashboard" actif
+      // _buildBottomNav() supprimé et remplacé par AppBottomNavBar
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 0),
       body: FutureBuilder(
         future: service.fetchDashboard(),
         builder: (context, snapshot) {
@@ -78,21 +81,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
           final data = snapshot.data as Map<String, dynamic>;
 
-          // ── Données 100% API ───────────────────────────────────────────────
           final List stockFaibleList =
               (data['stock_faible_list'] as List?) ?? [];
-
           final int totalProduits = data['total_produits'] ?? 0;
-
           final List dernieresCommandes =
               (data['dernieres_commandes'] as List?) ?? [];
-
           final double ventes7Jours =
               double.tryParse(data['ventes_7_jours'].toString()) ?? 0.0;
-
           final int nombreClients = data['nombre_clients'] ?? 0;
-
-          // Calculé depuis la liste réelle des commandes
           final int commandesEnAttente = dernieresCommandes
               .where((c) =>
                   (c['status'] ?? '').toString().toLowerCase() == 'en_attente')
@@ -104,18 +100,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 _buildAppBar(),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SizedBox(height: 8),
-
-                        // Greeting
                         const Text(
                           'Bonjour,',
-                          style: TextStyle(
-                              fontSize: 14, color: Color(0xFF888888)),
+                          style:
+                              TextStyle(fontSize: 14, color: Color(0xFF888888)),
                         ),
                         const Row(
                           children: [
@@ -130,10 +124,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             Text('👋', style: TextStyle(fontSize: 20)),
                           ],
                         ),
-
                         const SizedBox(height: 20),
-
-                        // ── Aperçu rapide ──────────────────────────────────
                         _sectionTitle('APERÇU RAPIDE'),
                         const SizedBox(height: 10),
                         Row(
@@ -172,18 +163,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 20),
-
-                        // ── Alertes stocks ─────────────────────────────────
                         if (stockFaibleList.isNotEmpty) ...[
                           _sectionTitle('ALERTES STOCKS'),
                           const SizedBox(height: 10),
                           _buildStockAlerts(stockFaibleList),
                           const SizedBox(height: 20),
                         ],
-
-                        // ── Dernières commandes ────────────────────────────
                         if (dernieresCommandes.isNotEmpty) ...[
                           _sectionTitle('DERNIÈRES COMMANDES'),
                           const SizedBox(height: 10),
@@ -191,7 +177,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
                             (c) => _orderRow(c as Map<String, dynamic>),
                           ),
                         ],
-
                         const SizedBox(height: 16),
                       ],
                     ),
@@ -202,12 +187,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
           );
         },
       ),
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
   // ── App Bar ────────────────────────────────────────────────────────────────
-
   Widget _buildAppBar() {
     return Container(
       color: _bg,
@@ -218,8 +201,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           const SizedBox(width: 40),
           GestureDetector(
             onTap: () {},
-            child: const Row(
-            ),
+            child: const Row(),
           ),
           const CircleAvatar(
             radius: 20,
@@ -232,7 +214,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   // ── Section title ──────────────────────────────────────────────────────────
-
   Widget _sectionTitle(String text) {
     return Text(
       text,
@@ -246,7 +227,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   // ── Stat card ──────────────────────────────────────────────────────────────
-
   Widget _statCard({
     required String label,
     required String value,
@@ -287,7 +267,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   // ── Stock alerts ───────────────────────────────────────────────────────────
-
   Widget _buildStockAlerts(List stockList) {
     if (stockList.length == 1) {
       final item = stockList[0] as Map<String, dynamic>;
@@ -365,13 +344,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   // ── Order row ──────────────────────────────────────────────────────────────
-
   Widget _orderRow(Map<String, dynamic> commande) {
     final String status = commande['status'] ?? '';
     final String total =
         '${double.tryParse(commande['total'].toString())?.toStringAsFixed(2) ?? '0.00'} €';
 
-    // Nom du premier puzzle de la commande
     final List puzzles = (commande['puzzles'] as List?) ?? [];
     final String puzzleLabel = puzzles.isNotEmpty
         ? (puzzles[0]['nom'] ?? 'Commande')
@@ -414,16 +391,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 const SizedBox(height: 3),
                 Text(
                   '$dateLabel • $total',
-                  style: const TextStyle(
-                      fontSize: 12, color: Color(0xFF999999)),
+                  style:
+                      const TextStyle(fontSize: 12, color: Color(0xFF999999)),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 10),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
               color: _statusColor(status),
               borderRadius: BorderRadius.circular(20),
@@ -442,78 +418,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // ── Bottom nav ─────────────────────────────────────────────────────────────
-
-Widget _buildBottomNav() {
-  final items = [
-    {'icon': Icons.grid_view_rounded, 'label': 'Dashboard'},
-    {'icon': Icons.extension_outlined, 'label': 'Puzzles'},
-    {'icon': Icons.shopping_bag_outlined, 'label': 'Commandes'},
-    {'icon': Icons.inventory_2_outlined, 'label': 'Stocks'},
-  ];
-
-  return Container(
-    decoration: const BoxDecoration(color: _dark),
-    child: SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: List.generate(items.length, (i) {
-            final selected = i == _selectedIndex;
-            return GestureDetector(
-              onTap: () {
-                // ✅ Navigation selon l'onglet cliqué
-                if (i == 0) {
-                  setState(() => _selectedIndex = 0); // Dashboard = déjà là
-                } else if (i == 1) {
-                  setState(() => _selectedIndex = 1);
-                  Navigator.pushNamed(context, '/puzzles');
-                } else if (i == 2) {
-                  setState(() => _selectedIndex = 2);
-                  Navigator.pushNamed(context, '/commandes');
-                } else if (i == 3) {
-                  setState(() => _selectedIndex = 3);
-                  // ✅ Navigue vers la page de gestion des stocks
-                  Navigator.pushNamed(context, '/stocks');
-                }
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    items[i]['icon'] as IconData,
-                    color: selected ? _gold : Colors.white54,
-                    size: 22,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    items[i]['label'] as String,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: selected ? _gold : Colors.white54,
-                      fontWeight:
-                          selected ? FontWeight.bold : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ),
-      ),
-    ),
-  );
-}
-
   // ── Helpers ────────────────────────────────────────────────────────────────
-
   String _formatDate(String raw) {
     try {
       final dt = DateTime.parse(raw);
       final diff = DateTime.now().difference(dt);
       if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
-      if (diff.inHours < 24)   return 'Il y a ${diff.inHours} heure(s)';
+      if (diff.inHours < 24) return 'Il y a ${diff.inHours} heure(s)';
       return 'Il y a ${diff.inDays} jour(s)';
     } catch (_) {
       return raw;

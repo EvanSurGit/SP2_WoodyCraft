@@ -3,8 +3,6 @@ import 'puzzle_service.dart';
 
 class CreatePuzzlePage extends StatefulWidget {
   const CreatePuzzlePage({super.key});
-
-  // ✅ FIX library_private_types_in_public_api (Ln 8) :
   //    State<CreatePuzzlePage> au lieu de _CreatePuzzlePageState
   @override
   State<CreatePuzzlePage> createState() => _CreatePuzzlePageState();
@@ -18,7 +16,6 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
   double _prix = 0.0;
   String _categorie = '';
 
-  // ✅ FIX use_build_context_synchronously (Ln 99, 103) :
   //    logique async extraite dans _submit() avec guard `if (!mounted) return`
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -37,7 +34,6 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        // ✅ FIX prefer_const_constructors (Ln 104, 105) : const SnackBar + const Text
         const SnackBar(
           content: Text('Erreur lors de la création'),
         ),
@@ -49,7 +45,6 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // ✅ FIX prefer_const_constructors (Ln 26) : const Text
         title: const Text('Ajouter un Puzzle'),
       ),
       body: Padding(

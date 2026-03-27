@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';            
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'puzzle_service.dart';
 import 'bottom_nav_bar.dart';
@@ -28,7 +28,6 @@ class StockManagementPage extends StatefulWidget {
 // le TabController (les onglets Tous / Faibles / Ruptures)
 class _StockManagementPageState extends State<StockManagementPage>
     with SingleTickerProviderStateMixin {
-
   // ── DONNÉES ──────────────────────────────────────────────────────────────
   // Liste de tous les puzzles reçus depuis l'API
   List<Puzzle> _allPuzzles = [];
@@ -81,7 +80,7 @@ class _StockManagementPageState extends State<StockManagementPage>
   // IMPORTANT : il faut toujours libérer les controllers pour éviter les fuites mémoire
   @override
   void dispose() {
-    _tabCtrl.dispose();    // libère le TabController
+    _tabCtrl.dispose(); // libère le TabController
     _searchCtrl.dispose(); // libère le TextEditingController
     super.dispose();
   }
@@ -94,7 +93,8 @@ class _StockManagementPageState extends State<StockManagementPage>
     setState(() {
       _loading = true;
       _error = null;
-      _alertDismissed = false; // on réaffiche la bannière d'alertes si nécessaire
+      _alertDismissed =
+          false; // on réaffiche la bannière d'alertes si nécessaire
     });
 
     try {
@@ -103,9 +103,9 @@ class _StockManagementPageState extends State<StockManagementPage>
 
       // On lance les 3 appels API séparément (on pourrait les lancer en parallèle
       // avec Future.wait, mais ici ils sont séquentiels pour simplicité)
-      final puzzlesFuture = service.fetchPuzzles();    // liste complète
-      final stockBasFuture = service.fetchStockBas();  // stocks faibles
-      final rupturesFuture = service.fetchRuptures();  // ruptures
+      final puzzlesFuture = service.fetchPuzzles(); // liste complète
+      final stockBasFuture = service.fetchStockBas(); // stocks faibles
+      final rupturesFuture = service.fetchRuptures(); // ruptures
 
       // "await" attend que chaque Future soit terminé avant de passer à la ligne suivante
       final puzzles = await puzzlesFuture;
@@ -115,7 +115,8 @@ class _StockManagementPageState extends State<StockManagementPage>
       // setState() met à jour l'affichage avec les nouvelles données
       setState(() {
         _allPuzzles = puzzles;
-        _filtered = List.from(_allPuzzles); // copie de la liste complète pour le filtre
+        _filtered =
+            List.from(_allPuzzles); // copie de la liste complète pour le filtre
         _stockBas = stockBas;
         _ruptures = ruptures;
         _loading = false; // on cache le spinner
@@ -141,12 +142,12 @@ class _StockManagementPageState extends State<StockManagementPage>
           ? List.from(_allPuzzles)
           // Sinon → on garde seulement les puzzles dont le nom OU la référence contient le texte
           : _allPuzzles
-                .where(
-                  (p) =>
-                      p.nom.toLowerCase().contains(q) ||
-                      'wc-${p.id}'.toLowerCase().contains(q), // ex: "wc-001"
-                )
-                .toList();
+              .where(
+                (p) =>
+                    p.nom.toLowerCase().contains(q) ||
+                    'wc-${p.id}'.toLowerCase().contains(q), // ex: "wc-001"
+              )
+              .toList();
     });
   }
 
@@ -176,7 +177,8 @@ class _StockManagementPageState extends State<StockManagementPage>
       // Si l'API échoue : on annule la mise à jour locale (rollback)
       _updateLocal(puzzle.id!, puzzle.stock);
       // On affiche un message d'erreur en bas de l'écran (SnackBar = toast)
-      if (mounted) { // "mounted" vérifie que la page est encore affichée
+      if (mounted) {
+        // "mounted" vérifie que la page est encore affichée
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Erreur de mise à jour du stock'),
@@ -217,7 +219,8 @@ class _StockManagementPageState extends State<StockManagementPage>
     setState(() {
       // On parcourt les deux listes pour trouver et mettre à jour le bon puzzle
       for (final list in [_allPuzzles, _filtered]) {
-        final idx = list.indexWhere((p) => p.id == id); // trouve l'index du puzzle
+        final idx =
+            list.indexWhere((p) => p.id == id); // trouve l'index du puzzle
         if (idx != -1) {
           // copyWith() crée une copie du puzzle avec seulement le stock modifié
           // (les autres champs restent inchangés)
@@ -235,7 +238,8 @@ class _StockManagementPageState extends State<StockManagementPage>
       final service = PuzzleService();
       final stockBas = await service.fetchStockBas();
       final ruptures = await service.fetchRuptures();
-      if (mounted) { // vérifie que la page est encore ouverte
+      if (mounted) {
+        // vérifie que la page est encore ouverte
         setState(() {
           _stockBas = stockBas;
           _ruptures = ruptures;
@@ -266,7 +270,8 @@ class _StockManagementPageState extends State<StockManagementPage>
           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         content: Column(
-          mainAxisSize: MainAxisSize.min, // la popup prend le minimum de hauteur nécessaire
+          mainAxisSize: MainAxisSize
+              .min, // la popup prend le minimum de hauteur nécessaire
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Affiche le stock actuel pour référence
@@ -335,8 +340,8 @@ class _StockManagementPageState extends State<StockManagementPage>
   //  - noir   si normal
   Color _stockColor(int stock) {
     if (stock <= _seuilRupture) return const Color(0xFFD32F2F); // rouge
-    if (stock <= _seuilFaible) return const Color(0xFFE65100);  // orange
-    return const Color(0xFF1C1A17);                              // noir
+    if (stock <= _seuilFaible) return const Color(0xFFE65100); // orange
+    return const Color(0xFF1C1A17); // noir
   }
 
   // ════════════════════════════════════════════════════════════════════════════
@@ -367,7 +372,8 @@ class _StockManagementPageState extends State<StockManagementPage>
             _buildTabBar(), // Tous | Faibles | Ruptures
 
             // ── Contenu principal ──────────────────────────────────────────
-            Expanded( // Expanded = prend tout l'espace vertical restant
+            Expanded(
+              // Expanded = prend tout l'espace vertical restant
               child: _loading
                   // Pendant le chargement → spinner au centre
                   ? const Center(
@@ -377,34 +383,34 @@ class _StockManagementPageState extends State<StockManagementPage>
                     )
                   // Si erreur → page d'erreur avec bouton réessayer
                   : _error != null
-                  ? _buildError()
-                  // Sinon → les 3 onglets avec leur contenu
-                  : TabBarView(
-                      controller: _tabCtrl,
-                      children: [
-                        _buildAllTab(), // Onglet "Tous" avec barre de recherche
-                        _buildAlerteTab(
-                          // Onglet "Faibles" : stocks faibles en orange
-                          items: _stockBas,
-                          couleur: const Color(0xFFE65100),
-                          icone: Icons.warning_amber_rounded,
-                          message: 'Aucun stock faible 👍',
+                      ? _buildError()
+                      // Sinon → les 3 onglets avec leur contenu
+                      : TabBarView(
+                          controller: _tabCtrl,
+                          children: [
+                            _buildAllTab(), // Onglet "Tous" avec barre de recherche
+                            _buildAlerteTab(
+                              // Onglet "Faibles" : stocks faibles en orange
+                              items: _stockBas,
+                              couleur: const Color(0xFFE65100),
+                              icone: Icons.warning_amber_rounded,
+                              message: 'Aucun stock faible 👍',
+                            ),
+                            _buildAlerteTab(
+                              // Onglet "Ruptures" : ruptures en rouge
+                              items: _ruptures,
+                              couleur: const Color(0xFFD32F2F),
+                              icone: Icons.remove_circle,
+                              message: 'Aucune rupture de stock 👍',
+                            ),
+                          ],
                         ),
-                        _buildAlerteTab(
-                          // Onglet "Ruptures" : ruptures en rouge
-                          items: _ruptures,
-                          couleur: const Color(0xFFD32F2F),
-                          icone: Icons.remove_circle,
-                          message: 'Aucune rupture de stock 👍',
-                        ),
-                      ],
-                    ),
             ),
           ],
         ),
       ),
       // Barre de navigation en bas de l'écran
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 3),
     );
   }
 
@@ -518,7 +524,8 @@ class _StockManagementPageState extends State<StockManagementPage>
           // ── Titre de la bannière + bouton fermer ─────────────────────────
           Row(
             children: [
-              const Icon(Icons.notifications_active, color: Colors.red, size: 18),
+              const Icon(Icons.notifications_active,
+                  color: Colors.red, size: 18),
               const SizedBox(width: 8),
               const Text(
                 'Alertes de stock',
@@ -601,8 +608,8 @@ class _StockManagementPageState extends State<StockManagementPage>
       ),
       child: TabBar(
         controller: _tabCtrl,
-        labelColor: const Color(0xFF1C1A17),       // couleur onglet sélectionné
-        unselectedLabelColor: Colors.grey,          // couleur onglets non sélectionnés
+        labelColor: const Color(0xFF1C1A17), // couleur onglet sélectionné
+        unselectedLabelColor: Colors.grey, // couleur onglets non sélectionnés
         labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12),
         // Indicateur visuel de l'onglet actif (fond légèrement coloré)
         indicator: BoxDecoration(
@@ -671,7 +678,8 @@ class _StockManagementPageState extends State<StockManagementPage>
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
           child: TextField(
-            controller: _searchCtrl, // lié au contrôleur qui déclenche _applyFilter
+            controller:
+                _searchCtrl, // lié au contrôleur qui déclenche _applyFilter
             style: const TextStyle(fontSize: 14),
             decoration: InputDecoration(
               hintText: 'Rechercher un nom ou une référence...',
@@ -729,9 +737,9 @@ class _StockManagementPageState extends State<StockManagementPage>
   // selon les paramètres passés (couleur, icône, message si vide)
   Widget _buildAlerteTab({
     required List<PuzzleAlerte> items, // la liste à afficher
-    required Color couleur,            // couleur du thème (orange ou rouge)
-    required IconData icone,           // icône à afficher
-    required String message,           // message si la liste est vide
+    required Color couleur, // couleur du thème (orange ou rouge)
+    required IconData icone, // icône à afficher
+    required String message, // message si la liste est vide
   }) {
     // Si aucune alerte → affiche un état "tout va bien" avec une icône verte
     if (items.isEmpty) {
@@ -739,7 +747,8 @@ class _StockManagementPageState extends State<StockManagementPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.check_circle_outline, size: 52, color: Colors.green[400]),
+            Icon(Icons.check_circle_outline,
+                size: 52, color: Colors.green[400]),
             const SizedBox(height: 12),
             Text(
               message, // ex: "Aucune rupture de stock 👍"
@@ -803,7 +812,8 @@ class _StockManagementPageState extends State<StockManagementPage>
               ),
               // Badge avec le stock actuel à droite (ex: "2" en rouge)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: couleur.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -834,9 +844,10 @@ class _StockManagementPageState extends State<StockManagementPage>
   //   - un appui long → ouvre la saisie manuelle
   Widget _buildCard(Puzzle puzzle) {
     // Détermine l'état du stock pour appliquer le bon style visuel
-    final isRupture = puzzle.stock <= _seuilRupture;                   // stock critique
-    final isFaible = !isRupture && puzzle.stock <= _seuilFaible;       // stock faible (mais pas 0)
-    final stockColor = _stockColor(puzzle.stock);                       // couleur du chiffre
+    final isRupture = puzzle.stock <= _seuilRupture; // stock critique
+    final isFaible =
+        !isRupture && puzzle.stock <= _seuilFaible; // stock faible (mais pas 0)
+    final stockColor = _stockColor(puzzle.stock); // couleur du chiffre
 
     return GestureDetector(
       // Appui long → ouvre la boîte de dialogue de saisie manuelle
@@ -852,10 +863,10 @@ class _StockManagementPageState extends State<StockManagementPage>
                   left: BorderSide(color: Color(0xFFD32F2F), width: 4),
                 )
               : isFaible
-              ? const Border(
-                  left: BorderSide(color: Color(0xFFE65100), width: 4),
-                )
-              : null, // pas de barre si le stock est normal
+                  ? const Border(
+                      left: BorderSide(color: Color(0xFFE65100), width: 4),
+                    )
+                  : null, // pas de barre si le stock est normal
           boxShadow: [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -914,7 +925,7 @@ class _StockManagementPageState extends State<StockManagementPage>
                           color: Color(0xFFD32F2F),
                         ),
                       ),
-                    // Label "Stock bas" en orange (si applicable)
+                      // Label "Stock bas" en orange (si applicable)
                     ] else if (isFaible) ...[
                       const SizedBox(height: 4),
                       const Text(
@@ -951,7 +962,8 @@ class _StockManagementPageState extends State<StockManagementPage>
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: stockColor, // rouge/orange/noir selon le niveau
+                          color:
+                              stockColor, // rouge/orange/noir selon le niveau
                         ),
                       ),
                     ),
@@ -972,7 +984,8 @@ class _StockManagementPageState extends State<StockManagementPage>
   // Widget réutilisable pour les boutons + et –
   // Si onTap est null → le bouton est visuellement désactivé (grisé)
   Widget _roundBtn({required IconData icon, VoidCallback? onTap}) {
-    final enabled = onTap != null; // le bouton est actif seulement si onTap est fourni
+    final enabled =
+        onTap != null; // le bouton est actif seulement si onTap est fourni
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -996,9 +1009,7 @@ class _StockManagementPageState extends State<StockManagementPage>
     );
   }
 
-  // ── PAGE D'ERREUR ─────────────────────────────────────────────────────────
-  // Affiché si le chargement de l'API échoue
-  // Affiche l'icône cloud barré + le message d'erreur + bouton "Réessayer"
+// ── PAGE D'ERREUR ─────────────────────────────────────────────────────────
   Widget _buildError() {
     return Center(
       child: Padding(
@@ -1009,12 +1020,11 @@ class _StockManagementPageState extends State<StockManagementPage>
             const Icon(Icons.cloud_off, size: 52, color: Colors.red),
             const SizedBox(height: 12),
             Text(
-              _error!, // affiche le message d'erreur (ex: "Connection refused")
+              _error!,
               textAlign: TextAlign.center,
               style: const TextStyle(color: Colors.red, fontSize: 13),
             ),
             const SizedBox(height: 16),
-            // Bouton qui relance _load() pour retenter l'appel API
             ElevatedButton.icon(
               onPressed: _load,
               icon: const Icon(Icons.refresh),
@@ -1029,69 +1039,5 @@ class _StockManagementPageState extends State<StockManagementPage>
       ),
     );
   }
-
-  // ── BARRE DE NAVIGATION DU BAS ────────────────────────────────────────────
-  // Barre commune à toutes les pages de l'app (Dashboard / Puzzles / Commandes / Stocks)
-  // L'onglet "Stocks" (index 3) est mis en surbrillance car c'est la page actuelle
-  Widget _buildBottomNav() {
-    // Définition des 4 onglets de navigation
-    const navItems = [
-      {'icon': Icons.dashboard_rounded, 'label': 'Dashboard'},
-      {'icon': Icons.extension_rounded, 'label': 'Puzzles'},
-      {'icon': Icons.receipt_long_rounded, 'label': 'Commandes'},
-      {'icon': Icons.inventory_2_rounded, 'label': 'Stocks'},
-    ];
-
-    return Container(
-      color: const Color(0xFF1C1A17), // fond noir
-      child: SafeArea(
-        top: false, // SafeArea uniquement en bas (pour les iPhones avec barre home)
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            // List.generate crée un widget pour chaque onglet
-            children: List.generate(navItems.length, (i) {
-              final selected = i == 3; // l'onglet "Stocks" est sélectionné
-              return Expanded(
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque, // toute la zone est cliquable
-                  onTap: () {
-                    // Si on clique sur un autre onglet → on revient en arrière
-                    // (la navigation vers les autres pages est gérée par le parent)
-                    if (i != 3) Navigator.pop(context);
-                  },
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        navItems[i]['icon'] as IconData,
-                        // Blanc opaque si sélectionné, blanc transparent sinon
-                        color: selected
-                            ? Colors.white
-                            : Colors.white.withValues(alpha: 0.4),
-                        size: 22,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        navItems[i]['label'] as String,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: selected
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.4),
-                          fontWeight: selected
-                              ? FontWeight.w600  // gras si sélectionné
-                              : FontWeight.normal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
+  //  _buildBottomNav() supprimé → remplacé par AppBottomNavBar dans le Scaffold
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dashboardadmin.dart';
 import 'puzzle_list_page.dart';
 import 'stock_management_page.dart';
-// ✅ Suppression de l'import 'bottom_nav_bar.dart' (c'est CE fichier, inutile de s'importer soi-même)
 
 // ════════════════════════════════════════════════════════════════════════════
 //  WIDGET NAVBAR PARTAGÉE
