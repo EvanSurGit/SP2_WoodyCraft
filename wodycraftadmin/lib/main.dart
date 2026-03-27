@@ -13,8 +13,8 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class WoodyCraftAdmin extends StatelessWidget {
+  const WoodyCraftAdmin({super.key});
 
   @override
   Widget build(BuildContext context) {

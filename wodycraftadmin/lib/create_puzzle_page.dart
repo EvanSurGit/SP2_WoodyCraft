@@ -13,9 +13,9 @@ class _C {
 
 class CreatePuzzlePage extends StatefulWidget {
   const CreatePuzzlePage({super.key});
-
+  //    State<CreatePuzzlePage> au lieu de _CreatePuzzlePageState
   @override
-  _CreatePuzzlePageState createState() => _CreatePuzzlePageState();
+  State<CreatePuzzlePage> createState() => _CreatePuzzlePageState();
 }
 
 class _CreatePuzzlePageState extends State<CreatePuzzlePage> {

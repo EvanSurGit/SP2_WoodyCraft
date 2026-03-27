@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'puzzle_service.dart';
 import 'create_puzzle_page.dart';
 import 'edit_puzzle_page.dart';
+import 'bottom_nav_bar.dart';
 
 class _C {
   static const background  = Color(0xFFF2EDE6);
@@ -12,9 +13,9 @@ class _C {
   static const textSecond  = Color(0xFF888888);
 }
 
+
 class PuzzleListPage extends StatefulWidget {
   const PuzzleListPage({super.key});
-
   @override
   _PuzzleListPageState createState() => _PuzzleListPageState();
 }
@@ -116,7 +117,7 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
       // FAB
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final result = await Navigator.push(
+          bool? result = await Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const CreatePuzzlePage()),
           );
