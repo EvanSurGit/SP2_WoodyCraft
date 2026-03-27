@@ -10,7 +10,8 @@ void main() {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  runApp(const MyApp());
+  // --- C'EST ICI LA CORRECTION 👇 ---
+  runApp(const WoodyCraftAdmin()); 
 }
 
 class WoodyCraftAdmin extends StatelessWidget {
