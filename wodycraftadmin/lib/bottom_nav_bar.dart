@@ -1,108 +1,104 @@
 import 'package:flutter/material.dart';
 import 'dashboardadmin.dart';
-import 'puzzle_list_page.dart';
+import 'catalogue_page.dart';
 import 'stock_management_page.dart';
-import 'admin_orders_page.dart';
+import 'admin_orders_page.dart'; // <-- 1. IMPORT DE LA NOUVELLE PAGE COMMANDES
 
-// ════════════════════════════════════════════════════════════════════════════
-//  WIDGET NAVBAR PARTAGÉE
-//
-//  Utilisé dans toutes les pages de l'app.
-//  Paramètre "currentIndex" : indique quel onglet est actif (surligné en or)
-//    0 = Dashboard
-//    1 = Puzzles
-//    2 = Commandes
-//    3 = Stocks
-// ════════════════════════════════════════════════════════════════════════════
 class AppBottomNavBar extends StatelessWidget {
   final int currentIndex;
 
   const AppBottomNavBar({super.key, required this.currentIndex});
 
-  static const Color _dark = Color(0xFF1C1A17);
-  static const Color _gold = Color(0xFFC8922A);
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      {'icon': Icons.grid_view_rounded, 'label': 'Dashboard'},
-      {'icon': Icons.extension_outlined, 'label': 'Puzzles'},
-      {'icon': Icons.shopping_bag_outlined, 'label': 'Commandes'},
-      {'icon': Icons.inventory_2_outlined, 'label': 'Stocks'},
-    ];
-
-    return Container(
-      decoration: const BoxDecoration(color: _dark),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(items.length, (i) {
-              final selected = i == currentIndex;
-              return GestureDetector(
-                onTap: () => _onTap(context, i),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      items[i]['icon'] as IconData,
-                      color: selected ? _gold : Colors.white54,
-                      size: 22,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      items[i]['label'] as String,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: selected ? _gold : Colors.white54,
-                        fontWeight:
-                            selected ? FontWeight.bold : FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _onTap(BuildContext context, int index) {
+  void _onItemTapped(BuildContext context, int index) {
     if (index == currentIndex) return;
 
     switch (index) {
-      case 0:
-        Navigator.pushAndRemoveUntil(
+      case 0: // Dashboard
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => AdminDashboard()),
-          (route) => false,
+          PageRouteBuilder(pageBuilder: (_, __, ___) => AdminDashboard(), transitionDuration: Duration.zero),
         );
         break;
-      case 1:
-        Navigator.pushAndRemoveUntil(
+      case 1: // Puzzles (Catalogue)
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const PuzzleListPage()),
-          (route) => false,
+          PageRouteBuilder(pageBuilder: (_, __, ___) => const CataloguePage(), transitionDuration: Duration.zero),
         );
         break;
-      case 2:
-        Navigator.pushAndRemoveUntil(
+      case 2: // Commandes
+        // --- 2. MAGIE : ON REDIRIGE VERS TA PAGE COMMANDES --- 👇
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const AdminOrdersPage()),
-          (route) => false,
+          // NB : Enlève le "const" si ta page a la même erreur que le dashboard !
+          PageRouteBuilder(pageBuilder: (_, __, ___) => const AdminOrdersPage(), transitionDuration: Duration.zero),
         );
         break;
-      case 3:
-        Navigator.pushAndRemoveUntil(
+      case 3: // Stocks
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const StockManagementPage()),
-          (route) => false,
+          PageRouteBuilder(pageBuilder: (_, __, ___) => const StockManagementPage(), transitionDuration: Duration.zero),
         );
         break;
     }
   }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      _NavItem(icon: Icons.home_rounded,            label: 'Dashboard'),
+      _NavItem(icon: Icons.extension_rounded,       label: 'Puzzles'),
+      _NavItem(icon: Icons.receipt_long_rounded,    label: 'Commandes'),
+      _NavItem(icon: Icons.inventory_2_rounded,     label: 'Stocks'),
+    ];
+
+    return Container(
+      height: 72,
+      decoration: const BoxDecoration(
+        color: Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(color: Colors.black26, blurRadius: 16, offset: Offset(0, -4)),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(items.length, (i) {
+          final item       = items[i];
+          final isSelected = i == currentIndex;
+          return GestureDetector(
+            onTap: () => _onItemTapped(context, i),
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              width: 72,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    item.icon,
+                    color: isSelected ? const Color(0xFFC17D2E) : Colors.grey.shade600,
+                    size: 22,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    item.label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                      color: isSelected ? const Color(0xFFC17D2E) : Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _NavItem {
+  final IconData icon;
+  final String   label;
+  const _NavItem({required this.icon, required this.label});
 }

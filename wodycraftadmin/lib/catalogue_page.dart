@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'puzzle_service.dart';
 import 'create_puzzle_page.dart';
-import 'puzzle_list_page.dart';
-import 'edit_puzzle_page.dart'; // <-- NOUVEL IMPORT OBLIGATOIRE ICI
+import 'edit_puzzle_page.dart';
+import 'bottom_nav_bar.dart'; // <-- L'IMPORT DE TA NAVBAR !
 
-// ─── Palette de couleurs centralisée ────────────────────────────────────────
 class AppColors {
-  static const background   = Color(0xFFF2EDE6); // beige chaud
+  static const background   = Color(0xFFF2EDE6); 
   static const card         = Colors.white;
-  static const navBar       = Color(0xFF1A1A1A); // barre nav sombre
-  static const gold         = Color(0xFFC17D2E); // bouton FAB + chip actif
-  static const goldLight    = Color(0xFFF5E6C8); // chip actif fond clair
+  static const navBar       = Color(0xFF1A1A1A); 
+  static const gold         = Color(0xFFC17D2E); 
+  static const goldLight    = Color(0xFFF5E6C8); 
   static const textPrimary  = Color(0xFF1A1A1A);
   static const textSecond   = Color(0xFF888888);
   static const textPrice    = Color(0xFFC17D2E);
@@ -29,7 +28,6 @@ class _CataloguePageState extends State<CataloguePage> {
   late Future<List<Puzzle>>    _futurePuzzles;
   late Future<List<Categorie>> _futureCategories;
   int _selectedCategoryId  = -1; // -1 = "Tous"
-  int _selectedBottomIndex = 1;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
 
@@ -52,7 +50,6 @@ class _CataloguePageState extends State<CataloguePage> {
     });
   }
 
-  // Filtre puzzles selon catégorie sélectionnée + recherche texte
   List<Puzzle> _filterPuzzles(List<Puzzle> all) {
     return all.where((p) {
       final matchCat    = _selectedCategoryId == -1 || p.categorieId == _selectedCategoryId;
@@ -67,12 +64,10 @@ class _CataloguePageState extends State<CataloguePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
 
-      // ── Corps ──────────────────────────────────────────────────────────────
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ── Titre ──────────────────────────────────────────────────────
             const Padding(
               padding: EdgeInsets.fromLTRB(20, 20, 20, 16),
               child: Text(
@@ -86,7 +81,6 @@ class _CataloguePageState extends State<CataloguePage> {
               ),
             ),
 
-            // ── Barre de recherche ─────────────────────────────────────────
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Container(
@@ -94,11 +88,7 @@ class _CataloguePageState extends State<CataloguePage> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.06),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
+                    BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 8, offset: const Offset(0, 2)),
                   ],
                 ),
                 child: TextField(
@@ -118,12 +108,10 @@ class _CataloguePageState extends State<CataloguePage> {
 
             const SizedBox(height: 16),
 
-            // ── Chips catégories ───────────────────────────────────────────
             FutureBuilder<List<Categorie>>(
               future: _futureCategories,
               builder: (context, snapshot) {
                 final categories = snapshot.data ?? [];
-                // On ajoute "Tous" en tête
                 final chips = <_CategoryChip>[
                   const _CategoryChip(id: -1, label: 'Tous'),
                   ...categories.map((c) => _CategoryChip(id: c.id, label: c.nom)),
@@ -172,15 +160,12 @@ class _CataloguePageState extends State<CataloguePage> {
 
             const SizedBox(height: 16),
 
-            // ── Grille puzzles ─────────────────────────────────────────────
             Expanded(
               child: FutureBuilder<List<Puzzle>>(
                 future: _futurePuzzles,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(color: AppColors.gold),
-                    );
+                    return const Center(child: CircularProgressIndicator(color: AppColors.gold));
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Erreur : ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -190,9 +175,7 @@ class _CataloguePageState extends State<CataloguePage> {
                   final filtered = _filterPuzzles(snapshot.data!);
 
                   if (filtered.isEmpty) {
-                    return const Center(
-                      child: Text('Aucun résultat.', style: TextStyle(color: AppColors.textSecond)),
-                    );
+                    return const Center(child: Text('Aucun résultat.', style: TextStyle(color: AppColors.textSecond)));
                   }
 
                   return GridView.builder(
@@ -205,24 +188,16 @@ class _CataloguePageState extends State<CataloguePage> {
                     ),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
-                      // --- MAGIE DU CLIC ICI ---
                       return GestureDetector(
                         onTap: () async {
-                          // Ouvre la page EditPuzzlePage avec le puzzle sélectionné
                           final result = await Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (_) => EditPuzzlePage(puzzle: filtered[index]),
-                            ),
+                            MaterialPageRoute(builder: (_) => EditPuzzlePage(puzzle: filtered[index])),
                           );
-                          // Rafraîchit la liste si une modif ou suppression a eu lieu
-                          if (result == true) {
-                            _refreshData();
-                          }
+                          if (result == true) _refreshData();
                         },
                         child: _PuzzleCard(puzzle: filtered[index]),
                       );
-                      // -------------------------
                     },
                   );
                 },
@@ -232,7 +207,6 @@ class _CataloguePageState extends State<CataloguePage> {
         ),
       ),
 
-      // ── FAB doré ──────────────────────────────────────────────────────────
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push(
@@ -248,32 +222,18 @@ class _CataloguePageState extends State<CataloguePage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
-      /* // ── Barre de navigation sombre ─────────────────────────────────────────
-      bottomNavigationBar: _BottomNav(
-        selectedIndex: _selectedBottomIndex,
-        onTap: (index) {
-          if (index == 1) return; // déjà sur catalogue
-          if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const PuzzleListPage()),
-            );
-          }
-          setState(() => _selectedBottomIndex = index);
-        },
-      ), */
+      // --- MAGIE : LA NAVBAR GLOBALE EST ICI ---
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 1),
     );
   }
 }
 
-// ─── Chip catégorie (data class simple) ────────────────────────────────────
 class _CategoryChip {
   final int    id;
   final String label;
   const _CategoryChip({required this.id, required this.label});
 }
 
-// ─── Carte puzzle ────────────────────────────────────────────────────────────
 class _PuzzleCard extends StatelessWidget {
   final Puzzle puzzle;
   const _PuzzleCard({required this.puzzle});
@@ -285,20 +245,15 @@ class _PuzzleCard extends StatelessWidget {
         color: AppColors.card,
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 12, offset: const Offset(0, 4)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image + badge stock (On utilise Expanded pour qu'il s'adapte au carré)
           Expanded(
             child: Stack(
-              fit: StackFit.expand, // Force l'image à remplir l'Expanded
+              fit: StackFit.expand,
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
@@ -310,7 +265,6 @@ class _PuzzleCard extends StatelessWidget {
                           errorBuilder: (_, __, ___) => _placeholder(),
                         ),
                 ),
-                // Badge "Stock: XX"
                 Positioned(
                   top: 8,
                   right: 8,
@@ -319,18 +273,14 @@ class _PuzzleCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.92),
                       borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 4),
-                      ],
+                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 4)],
                     ),
                     child: Text(
                       'Stock: ${puzzle.stock}',
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: puzzle.stock <= 5
-                            ? Colors.red.shade600
-                            : AppColors.textPrimary,
+                        color: puzzle.stock <= 5 ? Colors.red.shade600 : AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -338,8 +288,6 @@ class _PuzzleCard extends StatelessWidget {
               ],
             ),
           ),
-
-          // Infos
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             child: Column(
@@ -347,23 +295,14 @@ class _PuzzleCard extends StatelessWidget {
               children: [
                 Text(
                   puzzle.nom,
-                  style: const TextStyle(
-                    fontSize: 13, // Un poil plus petit
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                    height: 1.2,
-                  ),
-                  maxLines: 1, // Une seule ligne pour éviter que ça casse le design
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.textPrimary, height: 1.2),
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${puzzle.prix.toStringAsFixed(2)} €',
-                  style: const TextStyle(
-                    fontSize: 14, // Un poil plus petit
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrice,
-                  ),
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrice),
                 ),
               ],
             ),
@@ -376,77 +315,7 @@ class _PuzzleCard extends StatelessWidget {
   Widget _placeholder() {
     return Container(
       color: const Color(0xFFE8E0D5),
-      child: const Center(
-        child: Icon(Icons.extension_rounded, color: Color(0xFFBBAA96), size: 36),
-      ),
+      child: const Center(child: Icon(Icons.extension_rounded, color: Color(0xFFBBAA96), size: 36)),
     );
   }
-}
-
-// ─── Barre de navigation personnalisée ──────────────────────────────────────
-class _BottomNav extends StatelessWidget {
-  final int selectedIndex;
-  final ValueChanged<int> onTap;
-
-  const _BottomNav({required this.selectedIndex, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final items = [
-      _NavItem(icon: Icons.home_rounded,            label: 'Dashboard'),
-      _NavItem(icon: Icons.extension_rounded,       label: 'Puzzles'),
-      _NavItem(icon: Icons.receipt_long_rounded,    label: 'Commandes'),
-      _NavItem(icon: Icons.inventory_2_rounded,     label: 'Stocks'),
-    ];
-
-    return Container(
-      height: 72,
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        boxShadow: [
-          BoxShadow(color: Colors.black26, blurRadius: 16, offset: Offset(0, -4)),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: List.generate(items.length, (i) {
-          final item       = items[i];
-          final isSelected = i == selectedIndex;
-          return GestureDetector(
-            onTap: () => onTap(i),
-            behavior: HitTestBehavior.opaque,
-            child: SizedBox(
-              width: 72,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    item.icon,
-                    color: isSelected ? AppColors.gold : Colors.grey.shade600,
-                    size: 22,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    item.label,
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
-                      color: isSelected ? AppColors.gold : Colors.grey.shade600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
-
-class _NavItem {
-  final IconData icon;
-  final String   label;
-  const _NavItem({required this.icon, required this.label});
 }
