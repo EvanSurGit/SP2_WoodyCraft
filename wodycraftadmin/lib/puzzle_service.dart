@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+// Modèle Puzzle
 class Puzzle {
   final int id;
   final String nom;
@@ -8,6 +10,7 @@ class Puzzle {
   final String image;
   final double prix;
   final String categorie;
+  final int stock;
 
   Puzzle({
     required this.id,
@@ -16,6 +19,7 @@ class Puzzle {
     this.image = '',
     this.prix = 0.0,
     this.categorie = '',
+    this.stock = 0,
   });
 
   factory Puzzle.fromJson(Map<String, dynamic> json) {
@@ -24,29 +28,43 @@ class Puzzle {
       nom: json['nom']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       image: json['image']?.toString() ?? '',
-      // Gestion robuste du type double
-      prix:
-          double.tryParse(json['prix'].toString().replaceAll(',', '.')) ?? 0.0,
+      prix: double.tryParse(json['prix'].toString().replaceAll(',', '.')) ?? 0.0,
       categorie: json['categorie']?.toString() ?? '',
+      stock: json['stock'] ?? 0,
     );
   }
 }
 
+// Service API Puzzle — toutes les requêtes incluent le token Bearer
 class PuzzleService {
-  // Utilisez '10.0.2.2' pour l'émulateur Android, 'localhost' pour le Web/iOS
-  final String apiUrl = "http://groupe2.lycee.local/api/puzzles";
+  static const String _baseUrl = 'http://groupe2.lycee.local/api';
+  static const String _puzzlesUrl = '$_baseUrl/puzzles';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
+  // Récupère les headers avec le token d'authentification
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await _storage.read(key: 'access_token');
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  // Récupère la liste complète des puzzles
   Future<List<Puzzle>> fetchPuzzles() async {
-    final response = await http.get(Uri.parse(apiUrl));
+    final headers = await _authHeaders();
+    final response = await http.get(Uri.parse(_puzzlesUrl), headers: headers);
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
-      return body.map((dynamic item) => Puzzle.fromJson(item)).toList();
+      final List<dynamic> body = jsonDecode(response.body);
+      return body.map((item) => Puzzle.fromJson(item)).toList();
     } else {
-      throw Exception('Failed to load puzzles');
+      throw Exception('Erreur ${response.statusCode} : impossible de charger les puzzles');
     }
   }
 
+  // Crée un nouveau puzzle
   Future<Puzzle> createPuzzle(
     String nom,
     String description,
@@ -54,9 +72,10 @@ class PuzzleService {
     double prix,
     String categorie,
   ) async {
+    final headers = await _authHeaders();
     final response = await http.post(
-      Uri.parse(apiUrl),
-      headers: {'Content-Type': 'application/json'},
+      Uri.parse(_puzzlesUrl),
+      headers: headers,
       body: jsonEncode({
         'nom': nom,
         'description': description,
@@ -69,7 +88,34 @@ class PuzzleService {
     if (response.statusCode == 201) {
       return Puzzle.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to create puzzle');
+      throw Exception('Erreur ${response.statusCode} : impossible de créer le puzzle');
+    }
+  }
+
+  // Met à jour le stock d'un puzzle (PATCH /puzzles/{id}/stock)
+  Future<void> updateStock(int id, int stock) async {
+    final headers = await _authHeaders();
+    final response = await http.patch(
+      Uri.parse('$_puzzlesUrl/$id/stock'),
+      headers: headers,
+      body: jsonEncode({'stock': stock}),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Erreur ${response.statusCode} : impossible de mettre à jour le stock');
+    }
+  }
+
+  // Supprime un puzzle
+  Future<void> deletePuzzle(int id) async {
+    final headers = await _authHeaders();
+    final response = await http.delete(
+      Uri.parse('$_puzzlesUrl/$id'),
+      headers: headers,
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      throw Exception('Erreur ${response.statusCode} : impossible de supprimer le puzzle');
     }
   }
 }
