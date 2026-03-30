@@ -1,32 +1,33 @@
 import 'package:flutter/material.dart';
 import 'puzzle_service.dart';
-import 'main.dart' show AppColors;
 
 // Couleurs partagées (même palette que catalogue_page.dart)
 class _C {
   static const background  = Color(0xFFF2EDE6);
   static const card        = Colors.white;
   static const gold        = Color(0xFFC17D2E);
-  static const navBar      = Color(0xFF1A1A1A);
   static const textPrimary = Color(0xFF1A1A1A);
   static const textSecond  = Color(0xFF888888);
 }
 
 class CreatePuzzlePage extends StatefulWidget {
   const CreatePuzzlePage({super.key});
-  //    State<CreatePuzzlePage> au lieu de _CreatePuzzlePageState
+  
   @override
   State<CreatePuzzlePage> createState() => _CreatePuzzlePageState();
 }
 
 class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
   final _formKey = GlobalKey<FormState>();
+  
+  // Variables qui vont stocker les données du formulaire
   String  _nom         = '';
   String  _description = '';
   String  _image       = '';
   double  _prix        = 0.0;
   int     _stock       = 0;
   int?    _categorieId;
+  
   bool    _isLoading          = false;
   List<Categorie> _categories = [];
   bool    _isLoadingCats      = true;
@@ -34,16 +35,21 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
   @override
   void initState() {
     super.initState();
-    _loadCategories();
+    _loadCategories(); // On charge les catégories au démarrage
   }
 
   void _loadCategories() async {
     try {
       final cats = await PuzzleService().fetchCategories();
-      setState(() { _categories = cats; _isLoadingCats = false; });
-    } catch (e) {
-      setState(() => _isLoadingCats = false);
       if (mounted) {
+        setState(() { 
+          _categories = cats; 
+          _isLoadingCats = false; 
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingCats = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur catégories : $e'), backgroundColor: Colors.orange),
         );
@@ -51,20 +57,31 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
     }
   }
 
+  // --- LA SEULE ET UNIQUE FONCTION DE SOUMISSION ---
   void _submitForm() {
+    // 1. On vérifie que tous les champs obligatoires sont remplis
     if (!_formKey.currentState!.validate()) return;
+    
+    // 2. On sauvegarde les valeurs dans nos variables (_nom, _prix, etc.)
     _formKey.currentState!.save();
+    
     setState(() => _isLoading = true);
 
+    // 3. On envoie tout au service (qui va appeler Laravel)
     PuzzleService()
         .createPuzzle(_nom, _description, _image, _prix, _stock, _categorieId!)
-        .then((_) => Navigator.pop(context, true))
+        .then((_) {
+          if (!mounted) return;
+          // Si succès, on ferme la page et on renvoie "true" pour dire au catalogue de se rafraîchir
+          Navigator.pop(context, true);
+        })
         .catchError((error) {
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : $error'), backgroundColor: Colors.red),
-      );
-    });
+          if (!mounted) return;
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erreur : $error'), backgroundColor: Colors.red),
+          );
+        });
   }
 
   @override
@@ -104,12 +121,16 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildCard(children: [
-                _buildField(label: 'Nom du puzzle', hint: 'Ex: Loup Arctique',
+                _buildField(
+                  label: 'Nom du puzzle', 
+                  hint: 'Ex: Loup Arctique',
                   validator: (v) => (v == null || v.isEmpty) ? 'Champ requis' : null,
                   onSaved: (v) => _nom = v!,
                 ),
                 _divider(),
-                _buildField(label: 'Description', hint: 'Décris le puzzle…',
+                _buildField(
+                  label: 'Description', 
+                  hint: 'Décris le puzzle…',
                   maxLines: 3,
                   validator: (v) => (v == null || v.isEmpty) ? 'Champ requis' : null,
                   onSaved: (v) => _description = v!,
@@ -141,14 +162,14 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Prix requis';
-                    if (double.tryParse(v) == null) return 'Nombre invalide';
+                    if (double.tryParse(v.replaceAll(',', '.')) == null) return 'Nombre invalide';
                     return null;
                   },
-                  onSaved: (v) => _prix = double.parse(v!),
+                  onSaved: (v) => _prix = double.parse(v!.replaceAll(',', '.')),
                 ),
                 _divider(),
                 _buildField(
-                  label: 'Stock',
+                  label: 'Stock initial',
                   hint: '0',
                   keyboardType: TextInputType.number,
                   validator: (v) {
@@ -162,7 +183,7 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
 
               const SizedBox(height: 14),
 
-              // Catégorie
+              // --- SÉLECTEUR DE CATÉGORIE ---
               Container(
                 decoration: BoxDecoration(
                   color: _C.card,
@@ -195,7 +216,7 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
 
               const SizedBox(height: 32),
 
-              // Bouton soumettre
+              // --- BOUTON DE SOUMISSION ---
               SizedBox(
                 width: double.infinity,
                 height: 54,
@@ -262,30 +283,5 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
         ),
       ),
     );
-  }
-
-  // Validation et envoi du formulaire
-  void _submitForm() {
-    if (!_formKey.currentState!.validate()) return;
-
-    _formKey.currentState!.save();
-    setState(() => _isLoading = true);
-
-    PuzzleService()
-        .createPuzzle(_nom, _description, _image, _prix, _categorie)
-        .then((_) {
-          if (!mounted) return;
-          Navigator.pop(context, true);
-        })
-        .catchError((error) {
-          if (!mounted) return;
-          setState(() => _isLoading = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur : $error'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        });
   }
 }

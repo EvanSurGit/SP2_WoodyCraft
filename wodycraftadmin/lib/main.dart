@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
  
-import 'puzzle_list_page.dart';
+import 'dashboardadmin.dart'; // <-- 1. ON IMPORTE TON VRAI DASHBOARD ICI !
  
 void main() {
   runApp(const MyApp());
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         fontFamily: 'Roboto',
-        colorScheme: ColorScheme.light(
+        colorScheme: const ColorScheme.light(
           primary: AppColors.brownDark,
           secondary: AppColors.gold,
           surface: AppColors.bg,
@@ -65,96 +65,12 @@ class MyApp extends StatelessWidget {
         ),
         scaffoldBackgroundColor: AppColors.bg,
       ),
-      // Seul point d'entrée : le login
+      // Point d'entrée : le login
       home: const LoginScreen(),
       routes: {
-        '/admin/dashboard': (context) => const AppShell(),
+        // --- 2. MAGIE : ICI ON REDIRIGE VERS TON VRAI DASHBOARD ! ---
+        '/admin/dashboard': (context) => AdminDashboard(),
       },
-    );
-  }
-}
- 
-// ─── AppShell — navigation principale via IndexedStack ───────────────────────
-class AppShell extends StatefulWidget {
-  const AppShell({super.key});
- 
-  @override
-  State<AppShell> createState() => _AppShellState();
-}
- 
-class _AppShellState extends State<AppShell> {
-  int _currentIndex = 0;
- 
-  // Pages indexées — ajouter ici les nouvelles sections
-  static const List<Widget> _pages = [
-    _DashboardPlaceholder(),
-    PuzzleListPage(),
-    _CommandesPlaceholder(),
-  ];
- 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // IndexedStack garde chaque page en mémoire (pas de rebuild au changement d'onglet)
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        selectedItemColor: AppColors.gold,
-        unselectedItemColor: AppColors.brownDark.withOpacity(0.5),
-        backgroundColor: AppColors.bg,
-        elevation: 8,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: 'Accueil',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.library_books_outlined),
-            activeIcon: Icon(Icons.library_books),
-            label: 'Catalogue',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart_outlined),
-            activeIcon: Icon(Icons.shopping_cart),
-            label: 'Commandes',
-          ),
-        ],
-      ),
-    );
-  }
-}
- 
-// ─── Placeholders (à remplacer par les vraies pages) ─────────────────────────
-class _DashboardPlaceholder extends StatelessWidget {
-  const _DashboardPlaceholder();
- 
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Dashboard — à implémenter',
-            style: TextStyle(color: AppColors.brownDark)),
-      ),
-    );
-  }
-}
- 
-class _CommandesPlaceholder extends StatelessWidget {
-  const _CommandesPlaceholder();
- 
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Text('Commandes — à implémenter',
-            style: TextStyle(color: AppColors.brownDark)),
-      ),
     );
   }
 }
@@ -168,204 +84,162 @@ class LoginScreen extends StatefulWidget {
 }
  
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController    = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _storage            = const FlutterSecureStorage();
- 
-  bool _isLoading   = false;
-  bool _obscurePass = true;
+  final _storage = const FlutterSecureStorage();
+  bool _isLoading = false;
   String? _errorMessage;
  
-  static const String _baseUrl = 'http://groupe2.lycee.local/api';
- 
-  Future<void> _handleLogin() async {
+  Future<void> _login() async {
     setState(() {
-      _isLoading    = true;
+      _isLoading = true;
       _errorMessage = null;
     });
  
     try {
       final response = await http.post(
-        Uri.parse('$_baseUrl/login'),
+        Uri.parse('http://groupe2.lycee.local/api/login'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
         body: jsonEncode({
-          'email':    _emailController.text.trim(),
+          'email': _emailController.text.trim(),
           'password': _passwordController.text,
         }),
       );
  
-      final data = jsonDecode(response.body);
- 
       if (response.statusCode == 200) {
-        await _storage.write(key: 'access_token', value: data['access_token']);
-        await _storage.write(key: 'user_role',    value: data['user']['role']);
- 
-        if (!mounted) return;
-        Navigator.pushReplacementNamed(context, '/admin/dashboard');
- 
-      } else if (response.statusCode == 403) {
-        setState(() => _errorMessage = 'Accès refusé. Réservé aux administrateurs.');
+        final data = jsonDecode(response.body);
+        final token = data['access_token'];
+        
+        if (token != null) {
+          await _storage.write(key: 'auth_token', value: token);
+          if (!mounted) return;
+          // --- 3. REDIRECTION VERS LA ROUTE QU'ON A CORRIGÉE ---
+          Navigator.pushReplacementNamed(context, '/admin/dashboard');
+        }
       } else {
-        setState(() => _errorMessage = 'Identifiants incorrects.');
+        setState(() {
+          _errorMessage = 'Identifiants incorrects ou accès refusé.';
+        });
       }
     } catch (e) {
-      setState(() => _errorMessage = 'Impossible de joindre le serveur.');
+      setState(() {
+        _errorMessage = 'Erreur de connexion au serveur.';
+      });
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
- 
-    setState(() => _isLoading = false);
   }
  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.bg,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/images/logo.png', height: 64),
-                const SizedBox(height: 16),
-                const Text(
-                  'WoodyCraft',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.brownDark,
-                    letterSpacing: 0.5,
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Logo ou Icône
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.brownDark,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Icon(Icons.admin_panel_settings, size: 64, color: AppColors.gold),
+              ),
+              const SizedBox(height: 24),
+              
+              const Text(
+                'WoodyCraft',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.brownDark,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const Text(
+                'Espace Administrateur',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppColors.gold,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 40),
+ 
+              if (_errorMessage != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.red.shade700),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          _errorMessage!,
+                          style: TextStyle(color: Colors.red.shade900, fontSize: 13),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
-                  'ESPACE ADMINISTRATEUR',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: AppColors.gold,
-                    letterSpacing: 3,
-                    fontWeight: FontWeight.w600,
-                  ),
+ 
+              TextField(
+                controller: _emailController,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                  labelText: 'Adresse e-mail',
+                  prefixIcon: Icon(Icons.email_outlined, color: AppColors.brownDark),
                 ),
-                const SizedBox(height: 40),
-                _buildLabel('Email professionnel'),
-                const SizedBox(height: 6),
-                _buildTextField(
-                  controller: _emailController,
-                  hint: 'admin@woodycraft.fr',
-                  keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+              
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Mot de passe',
+                  prefixIcon: Icon(Icons.lock_outline, color: AppColors.brownDark),
                 ),
-                const SizedBox(height: 20),
-                _buildLabel('Mot de passe'),
-                const SizedBox(height: 6),
-                _buildTextField(
-                  controller: _passwordController,
-                  hint: '••••••••',
-                  obscure: _obscurePass,
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePass ? Icons.visibility_off : Icons.visibility,
-                      color: AppColors.gold,
-                      size: 20,
-                    ),
-                    onPressed: () => setState(() => _obscurePass = !_obscurePass),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (_errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Text(
-                      _errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 13),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Se connecter',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
+              ),
+              const SizedBox(height: 32),
+ 
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _login,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(color: AppColors.gold, strokeWidth: 2),
+                        )
+                      : const Text(
+                          'SE CONNECTER',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.0,
                           ),
-                  ),
+                        ),
                 ),
-                const SizedBox(height: 20),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'Identifiants oubliés ?',
-                    style: TextStyle(color: AppColors.gold, fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
- 
-  Widget _buildLabel(String text) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 13,
-          color: AppColors.brownDark,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
- 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    bool obscure = false,
-    TextInputType keyboardType = TextInputType.text,
-    Widget? suffixIcon,
-  }) {
-    return TextField(
-      controller: controller,
-      obscureText: obscure,
-      keyboardType: keyboardType,
-      style: const TextStyle(color: AppColors.brownDark, fontSize: 14),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: TextStyle(
-          color: AppColors.brownDark.withOpacity(0.4),
-          fontSize: 14,
-        ),
-        suffixIcon: suffixIcon,
-      ),
-    );
-  }
- 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
 }
- 

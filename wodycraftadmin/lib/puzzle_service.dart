@@ -99,15 +99,16 @@ class PuzzleAlerte {
   }
 }
 
-// Service API Puzzle — toutes les requêtes incluent le token Bearer
+// ─── SERVICE API PUZZLE (Sécurisé avec Token) ──────────────────────────────
+
 class PuzzleService {
   static const String _baseUrl = 'http://groupe2.lycee.local/api';
-  static const String _puzzlesUrl = '$_baseUrl/puzzles';
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
   // Récupère les headers avec le token d'authentification
   Future<Map<String, String>> _authHeaders() async {
-    final token = await _storage.read(key: 'access_token');
+    // CORRECTION : On utilise bien 'auth_token' comme dans ton main.dart
+    final token = await _storage.read(key: 'auth_token');
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
@@ -115,10 +116,10 @@ class PuzzleService {
     };
   }
 
-  // Récupère la liste complète des puzzles
+  // 1. Récupère la liste complète des puzzles
   Future<List<Puzzle>> fetchPuzzles() async {
-    final headers = await _authHeaders();
-    final response = await http.get(Uri.parse(_puzzlesUrl), headers: headers);
+    final headers = await _authHeaders(); // <--- ON RÉCUPÈRE LE TOKEN
+    final response = await http.get(Uri.parse('$_baseUrl/puzzles'), headers: headers); // <--- ON L'ENVOIE
 
     if (response.statusCode == 200) {
       final List<dynamic> body = jsonDecode(response.body);
@@ -130,7 +131,8 @@ class PuzzleService {
 
   // 2. Récupérer toutes les catégories
   Future<List<Categorie>> fetchCategories() async {
-    final response = await http.get(Uri.parse('$baseUrl/cat'));
+    final headers = await _authHeaders(); // <--- ON RÉCUPÈRE LE TOKEN
+    final response = await http.get(Uri.parse('$_baseUrl/cat'), headers: headers); // <--- ON L'ENVOIE
 
     if (response.statusCode == 200) {
       List<dynamic> body = jsonDecode(response.body);
@@ -142,9 +144,10 @@ class PuzzleService {
 
   // 3. Créer un puzzle
   Future<void> createPuzzle(String nom, String description, String image, double prix, int stock, int categorieId) async {
+    final headers = await _authHeaders(); // <--- ON RÉCUPÈRE LE TOKEN
     final response = await http.post(
-      Uri.parse('$baseUrl/puzzles'),
-      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      Uri.parse('$_baseUrl/puzzles'),
+      headers: headers, // <--- ON L'ENVOIE
       body: jsonEncode({
         'nom': nom,
         'description': description,
@@ -159,9 +162,10 @@ class PuzzleService {
 
   // 4. Modifier un puzzle
   Future<void> updatePuzzle(int id, String nom, String description, String image, double prix, int stock, int categorieId) async {
+    final headers = await _authHeaders(); // <--- ON RÉCUPÈRE LE TOKEN
     final response = await http.put(
-      Uri.parse('$baseUrl/puzzles/$id'),
-      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      Uri.parse('$_baseUrl/puzzles/$id'),
+      headers: headers, // <--- ON L'ENVOIE
       body: jsonEncode({
         'nom': nom,
         'description': description,
@@ -176,13 +180,15 @@ class PuzzleService {
 
   // 5. Supprimer un puzzle
   Future<void> deletePuzzle(int id) async {
-    final response = await http.delete(Uri.parse('$baseUrl/puzzles/$id'));
+    final headers = await _authHeaders(); // <--- ON RÉCUPÈRE LE TOKEN
+    final response = await http.delete(Uri.parse('$_baseUrl/puzzles/$id'), headers: headers); // <--- ON L'ENVOIE
     if (response.statusCode != 200) throw Exception('Échec suppression: ${response.body}');
   }
 
   // 6. Alertes : Stock bas
   Future<List<PuzzleAlerte>> fetchStockBas() async {
-    final res = await http.get(Uri.parse('$baseUrl/puzzles/alertes/stock-bas'));
+    final headers = await _authHeaders(); // <--- ON RÉCUPÈRE LE TOKEN
+    final res = await http.get(Uri.parse('$_baseUrl/puzzles/alertes/stock-bas'), headers: headers); // <--- ON L'ENVOIE
     if (res.statusCode == 200) {
       return (jsonDecode(res.body) as List)
           .map((e) => PuzzleAlerte.fromJson(e as Map<String, dynamic>))
@@ -193,7 +199,8 @@ class PuzzleService {
 
   // 7. Alertes : Ruptures
   Future<List<PuzzleAlerte>> fetchRuptures() async {
-    final res = await http.get(Uri.parse('$baseUrl/puzzles/alertes/ruptures'));
+    final headers = await _authHeaders(); // <--- ON RÉCUPÈRE LE TOKEN
+    final res = await http.get(Uri.parse('$_baseUrl/puzzles/alertes/ruptures'), headers: headers); // <--- ON L'ENVOIE
     if (res.statusCode == 200) {
       return (jsonDecode(res.body) as List)
           .map((e) => PuzzleAlerte.fromJson(e as Map<String, dynamic>))
@@ -204,9 +211,10 @@ class PuzzleService {
 
   // 8. Modifier UNIQUEMENT le stock
   Future<Puzzle> updateStock(int id, int nouveauStock) async {
+    final headers = await _authHeaders(); // <--- ON RÉCUPÈRE LE TOKEN
     final res = await http.patch(
-      Uri.parse('$baseUrl/puzzles/$id/stock'),
-      headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
+      Uri.parse('$_baseUrl/puzzles/$id/stock'),
+      headers: headers, // <--- ON L'ENVOIE
       body: jsonEncode({'stock': nouveauStock}),
     );
     if (res.statusCode == 200) {

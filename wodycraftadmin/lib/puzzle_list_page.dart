@@ -4,6 +4,7 @@ import 'create_puzzle_page.dart';
 import 'edit_puzzle_page.dart';
 import 'bottom_nav_bar.dart';
 
+// Palette de couleurs locale
 class _C {
   static const background  = Color(0xFFF2EDE6);
   static const card        = Colors.white;
@@ -11,11 +12,10 @@ class _C {
   static const textPrimary = Color(0xFF1A1A1A);
   static const textSecond  = Color(0xFF888888);
 }
-import 'main.dart' show AppColors;
 
-// Page catalogue — intégrée dans AppShell (pas de BottomNav locale)
 class PuzzleListPage extends StatefulWidget {
   const PuzzleListPage({super.key});
+  
   @override
   State<PuzzleListPage> createState() => _PuzzleListPageState();
 }
@@ -76,7 +76,7 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
             // Liste
             Expanded(
               child: FutureBuilder<List<Puzzle>>(
-                future: futurePuzzles,
+                future: _futurePuzzles,
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator(color: _C.gold));
@@ -113,9 +113,11 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
       ),
 
       floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.gold,
+        backgroundColor: _C.gold, // Un seul backgroundColor !
         foregroundColor: Colors.white,
         tooltip: 'Ajouter un puzzle',
+        elevation: 6,
+        shape: const CircleBorder(),
         onPressed: () async {
           bool? result = await Navigator.push(
             context,
@@ -123,13 +125,12 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
           );
           if (result == true) _refreshPuzzles();
         },
-        backgroundColor: _C.gold,
-        elevation: 6,
-        shape: const CircleBorder(),
         child: const Icon(Icons.add, color: Colors.white, size: 28),
       ),
-      bottomNavigationBar: const AppBottomNavBar(currentIndex: 1),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      
+      // On branche la fameuse barre de navigation
+      bottomNavigationBar: const AppBottomNavBar(currentIndex: 1),
     );
   }
 
@@ -140,8 +141,7 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Supprimer ?', style: TextStyle(fontWeight: FontWeight.w800, color: _C.textPrimary)),
-        content: Text('Voulez-vous vraiment supprimer "${puzzle.nom}" ?',
-          style: const TextStyle(color: _C.textSecond)),
+        content: Text('Voulez-vous vraiment supprimer "${puzzle.nom}" ?', style: const TextStyle(color: _C.textSecond)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -180,7 +180,7 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
   }
 }
 
-// ─── Tile puzzle ──────────────────────────────────────────────────────────────
+// ─── Tuile puzzle ─────────────────────────────────────────────────────────────
 class _PuzzleListTile extends StatelessWidget {
   final Puzzle puzzle;
   final VoidCallback onEdit;
@@ -254,71 +254,6 @@ class _PuzzleListTile extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 4),
-        ],
-      ),
-    );
-  }
-}
-
-// ─── Tuile puzzle ─────────────────────────────────────────────────────────────
-class _PuzzleTile extends StatelessWidget {
-  final Puzzle puzzle;
-  const _PuzzleTile({required this.puzzle});
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      leading: CircleAvatar(
-        backgroundColor: AppColors.gold.withOpacity(0.15),
-        child: Text(
-          puzzle.nom.isNotEmpty ? puzzle.nom[0].toUpperCase() : '?',
-          style: const TextStyle(
-            color: AppColors.gold,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-      title: Text(
-        puzzle.nom,
-        style: const TextStyle(
-          fontWeight: FontWeight.w600,
-          color: AppColors.brownDark,
-        ),
-      ),
-      subtitle: Text(
-        puzzle.description,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: TextStyle(
-          color: AppColors.brownDark.withOpacity(0.6),
-          fontSize: 12,
-        ),
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            '${puzzle.prix.toStringAsFixed(2)} €',
-            style: const TextStyle(
-              color: AppColors.gold,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          if (puzzle.stock == 0)
-            const Text(
-              'Rupture',
-              style: TextStyle(color: Colors.red, fontSize: 11),
-            )
-          else
-            Text(
-              'Stock : ${puzzle.stock}',
-              style: TextStyle(
-                color: AppColors.brownDark.withOpacity(0.5),
-                fontSize: 11,
-              ),
-            ),
         ],
       ),
     );

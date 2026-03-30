@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
   http: ^1.2.2                # appels API
-  flutter_secure_storage: ^9.0.0 # stockage sécurisé du token
+  flutter_secure_storage: ^10.0.0 # stockage sécurisé du token
 
 
   # The following adds the Cupertino Icons font to your application.
