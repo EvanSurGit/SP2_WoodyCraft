@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // ─── LES MODÈLES DE DONNÉES ────────────────────────────────────────────────
 
@@ -98,19 +99,30 @@ class PuzzleAlerte {
   }
 }
 
-
-// ─── LE SERVICE (API) ──────────────────────────────────────────────────────
-
+// Service API Puzzle — toutes les requêtes incluent le token Bearer
 class PuzzleService {
-  final String baseUrl = "http://groupe2.lycee.local/api";
+  static const String _baseUrl = 'http://groupe2.lycee.local/api';
+  static const String _puzzlesUrl = '$_baseUrl/puzzles';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
-  // 1. Récupérer tous les puzzles
+  // Récupère les headers avec le token d'authentification
+  Future<Map<String, String>> _authHeaders() async {
+    final token = await _storage.read(key: 'access_token');
+    return {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
+  // Récupère la liste complète des puzzles
   Future<List<Puzzle>> fetchPuzzles() async {
-    final response = await http.get(Uri.parse('$baseUrl/puzzles'));
+    final headers = await _authHeaders();
+    final response = await http.get(Uri.parse(_puzzlesUrl), headers: headers);
 
     if (response.statusCode == 200) {
-      List<dynamic> body = jsonDecode(response.body);
-      return body.map((dynamic item) => Puzzle.fromJson(item)).toList();
+      final List<dynamic> body = jsonDecode(response.body);
+      return body.map((item) => Puzzle.fromJson(item)).toList();
     } else {
       throw Exception('Erreur de récupération des puzzles: ${response.body}');
     }

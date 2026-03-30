@@ -11,15 +11,17 @@ class _C {
   static const textPrimary = Color(0xFF1A1A1A);
   static const textSecond  = Color(0xFF888888);
 }
+import 'main.dart' show AppColors;
 
+// Page catalogue — intégrée dans AppShell (pas de BottomNav locale)
 class PuzzleListPage extends StatefulWidget {
   const PuzzleListPage({super.key});
   @override
-  _PuzzleListPageState createState() => _PuzzleListPageState();
+  State<PuzzleListPage> createState() => _PuzzleListPageState();
 }
 
 class _PuzzleListPageState extends State<PuzzleListPage> {
-  late Future<List<Puzzle>> futurePuzzles;
+  late Future<List<Puzzle>> _futurePuzzles;
 
   @override
   void initState() {
@@ -27,9 +29,10 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
     _refreshPuzzles();
   }
 
+  // Recharge la liste depuis l'API
   void _refreshPuzzles() {
     setState(() {
-      futurePuzzles = PuzzleService().fetchPuzzles();
+      _futurePuzzles = PuzzleService().fetchPuzzles();
     });
   }
 
@@ -110,6 +113,9 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
       ),
 
       floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.gold,
+        foregroundColor: Colors.white,
+        tooltip: 'Ajouter un puzzle',
         onPressed: () async {
           bool? result = await Navigator.push(
             context,
@@ -248,6 +254,71 @@ class _PuzzleListTile extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 4),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Tuile puzzle ─────────────────────────────────────────────────────────────
+class _PuzzleTile extends StatelessWidget {
+  final Puzzle puzzle;
+  const _PuzzleTile({required this.puzzle});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      leading: CircleAvatar(
+        backgroundColor: AppColors.gold.withOpacity(0.15),
+        child: Text(
+          puzzle.nom.isNotEmpty ? puzzle.nom[0].toUpperCase() : '?',
+          style: const TextStyle(
+            color: AppColors.gold,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+      title: Text(
+        puzzle.nom,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          color: AppColors.brownDark,
+        ),
+      ),
+      subtitle: Text(
+        puzzle.description,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: AppColors.brownDark.withOpacity(0.6),
+          fontSize: 12,
+        ),
+      ),
+      trailing: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            '${puzzle.prix.toStringAsFixed(2)} €',
+            style: const TextStyle(
+              color: AppColors.gold,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          if (puzzle.stock == 0)
+            const Text(
+              'Rupture',
+              style: TextStyle(color: Colors.red, fontSize: 11),
+            )
+          else
+            Text(
+              'Stock : ${puzzle.stock}',
+              style: TextStyle(
+                color: AppColors.brownDark.withOpacity(0.5),
+                fontSize: 11,
+              ),
+            ),
         ],
       ),
     );

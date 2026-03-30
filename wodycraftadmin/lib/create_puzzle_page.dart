@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'puzzle_service.dart';
+import 'main.dart' show AppColors;
 
 // Couleurs partagées (même palette que catalogue_page.dart)
 class _C {
@@ -261,5 +262,30 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
         ),
       ),
     );
+  }
+
+  // Validation et envoi du formulaire
+  void _submitForm() {
+    if (!_formKey.currentState!.validate()) return;
+
+    _formKey.currentState!.save();
+    setState(() => _isLoading = true);
+
+    PuzzleService()
+        .createPuzzle(_nom, _description, _image, _prix, _categorie)
+        .then((_) {
+          if (!mounted) return;
+          Navigator.pop(context, true);
+        })
+        .catchError((error) {
+          if (!mounted) return;
+          setState(() => _isLoading = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur : $error'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        });
   }
 }
