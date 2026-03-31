@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'puzzle_service.dart'; // Importer PuzzleService
 
 class CreatePuzzlePage extends StatefulWidget {
+  const CreatePuzzlePage({super.key});
+
   @override
   _CreatePuzzlePageState createState() => _CreatePuzzlePageState();
 }
@@ -18,7 +20,7 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ajouter un Puzzle'),
+        title: const Text('Ajouter un Puzzle'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -27,7 +29,7 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
           child: Column(
             children: <Widget>[
               TextFormField(
-                decoration: InputDecoration(labelText: 'Nom'),
+                decoration: const InputDecoration(labelText: 'Nom'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Veuillez entrer un nom';
@@ -39,7 +41,7 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Description'),
+                decoration: const InputDecoration(labelText: 'Description'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Veuillez entrer une description';
@@ -51,13 +53,13 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Image URL (optionnelle)'),
+                decoration: const InputDecoration(labelText: 'Image URL (optionnelle)'),
                 onSaved: (value) {
                   _image = value ?? '';
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Prix'),
+                decoration: const InputDecoration(labelText: 'Prix'),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -73,7 +75,7 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
                 },
               ),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Catégorie'),
+                decoration: const InputDecoration(labelText: 'Catégorie'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Veuillez entrer une catégorie';
@@ -84,7 +86,7 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
                   _categorie = value!;
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
   onPressed: () {
     if (_formKey.currentState!.validate()) {
@@ -101,12 +103,12 @@ class _CreatePuzzlePageState extends State<CreatePuzzlePage> {
 
           // Afficher une notification à l'utilisateur
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur lors de la création du puzzle')),
+            const SnackBar(content: Text('Erreur lors de la création du puzzle')),
           );
         });
     }
   },
-  child: Text('Créer'),
+  child: const Text('Créer'),
 ),
 
              

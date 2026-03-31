@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'puzzle_service.dart'; // Importer PuzzleService
-import 'create_puzzle_page.dart'; // Importer CreatePuzzlePage
+import 'puzzle_service.dart';
+import 'create_puzzle_page.dart';
 
 class PuzzleListPage extends StatefulWidget {
+  const PuzzleListPage({super.key});
+
   @override
   _PuzzleListPageState createState() => _PuzzleListPageState();
 }
@@ -10,25 +12,21 @@ class PuzzleListPage extends StatefulWidget {
 class _PuzzleListPageState extends State<PuzzleListPage> {
   late Future<List<Puzzle>> futurePuzzles;
   int _selectedIndex = 0;
-  String _affichage = "Accueil";
+  String _affichage = 'Accueil';
 
-  void _itemClique(int index){
+  void _itemClique(int index) {
     setState(() {
       _selectedIndex = index;
-      switch(_selectedIndex){
+      switch (_selectedIndex) {
         case 0:
-        {
           _affichage = 'Accueil';
-        }
+          break;
         case 1:
-        {
           _affichage = 'Gestion catalogue';
-        }
+          break;
         case 2:
-        {
           _affichage = 'Gestion commandes';
-        }
-        break;
+          break;
       }
     });
   }
@@ -36,43 +34,46 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
   @override
   void initState() {
     super.initState();
-    futurePuzzles = PuzzleService().fetchPuzzles(); // Appel de fetchPuzzles
+    futurePuzzles = PuzzleService().fetchPuzzles();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gestion du catalogue'),
+        title: Text(_affichage),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Accueil',
-            ),
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.library_books),
             label: 'Catalogue',
-            ),
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.linear_scale),
             label: 'Commandes',
-            ),
+          ),
         ],
         backgroundColor: Colors.blue,
         onTap: _itemClique,
         currentIndex: _selectedIndex,
-        ),
+      ),
       body: FutureBuilder<List<Puzzle>>(
         future: futurePuzzles,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Erreur: ${snapshot.error}'));
           } else {
-            final puzzles = snapshot.data!;
+            final puzzles = snapshot.data ?? [];
+            if (puzzles.isEmpty) {
+              return const Center(child: Text('Aucun puzzle disponible'));
+            }
             return ListView.builder(
               itemCount: puzzles.length,
               itemBuilder: (context, index) {
@@ -92,14 +93,13 @@ class _PuzzleListPageState extends State<PuzzleListPage> {
             MaterialPageRoute(builder: (context) => CreatePuzzlePage()),
           ).then((value) {
             if (value == true) {
-              // Rafraîchir la liste après ajout
               setState(() {
-                futurePuzzles = PuzzleService().fetchPuzzles(); // Récupérer à nouveau les puzzles
+                futurePuzzles = PuzzleService().fetchPuzzles();
               });
             }
           });
         },
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
