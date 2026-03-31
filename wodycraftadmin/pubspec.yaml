@@ -28,9 +28,10 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  http: ^1.2.2
   flutter:
     sdk: flutter
+  http: ^1.2.2                # appels API
+  flutter_secure_storage: ^10.0.0 # stockage sécurisé du token
 
 
   # The following adds the Cupertino Icons font to your application.
