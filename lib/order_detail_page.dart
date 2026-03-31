@@ -118,7 +118,7 @@ class OrderDetailPage extends StatefulWidget {
 }
 
 class _OrderDetailPageState extends State<OrderDetailPage> {
-  final String baseUrl = "http://localhost/SP2_Api/public/api/commandes";
+  final String baseUrl = "http://groupe2.lycee.local/api/commandes";
   late Future<OrderDetail> futureOrderDetail;
 
   @override

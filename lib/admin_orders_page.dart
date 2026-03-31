@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'bottom_nav_bar.dart';
+import 'order_detail_page.dart' hide Puzzle, User;
 
 // =====================
 // COULEURS
@@ -227,6 +228,13 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
     return "${date.day}/${date.month}/${date.year}, $time";
   }
 
+  void _openDetail(Order order) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => OrderDetailPage(orderId: order.id)),
+    ).then((_) => refresh());
+  }
+
   // =====================
   // WIDGETS
   // =====================
@@ -280,7 +288,7 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
       return SizedBox(
         width: double.infinity,
         child: TextButton(
-          onPressed: () {},
+          onPressed: () => _openDetail(order),
           style: TextButton.styleFrom(
             backgroundColor: const Color(0xFFF0EDE9),
             foregroundColor: Colors.grey[700],
@@ -365,43 +373,54 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("#WoodyCraft-${order.id}",
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16,
-                        letterSpacing: -0.3, color: Color(0xFF1A1A1A))),
-                    const SizedBox(height: 2),
-                    Text(formatDate(order.dateCommande),
-                      style: const TextStyle(fontSize: 12.5, color: Colors.grey)),
-                  ],
-                ),
-                _buildStatusBadge(order.status),
-              ],
+            // ← SEULE CETTE PARTIE EST CLIQUABLE POUR OUVRIR LE DÉTAIL
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _openDetail(order),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("#WoodyCraft-${order.id}",
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16,
+                              letterSpacing: -0.3, color: Color(0xFF1A1A1A))),
+                          const SizedBox(height: 2),
+                          Text(formatDate(order.dateCommande),
+                            style: const TextStyle(fontSize: 12.5, color: Colors.grey)),
+                        ],
+                      ),
+                      _buildStatusBadge(order.status),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      _buildAvatar(order.userName),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(order.userName.isNotEmpty ? order.userName : "Client :${order.userId}",
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Color(0xFF1A1A1A))),
+                          const SizedBox(height: 2),
+                          Text("${order.articleCount} article${order.articleCount > 1 ? 's' : ''} • ${order.total.toStringAsFixed(2)} €",
+                            style: const TextStyle(fontSize: 13, color: Colors.grey)),
+                          const SizedBox(height: 4),
+                          _buildPaymentRow(order.modePaiement),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                ],
+              ),
             ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                _buildAvatar(order.userName),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(order.userName.isNotEmpty ? order.userName : "Client :${order.userId}",
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Color(0xFF1A1A1A))),
-                    const SizedBox(height: 2),
-                    Text("${order.articleCount} article${order.articleCount > 1 ? 's' : ''} • ${order.total.toStringAsFixed(2)} €",
-                      style: const TextStyle(fontSize: 13, color: Colors.grey)),
-                    const SizedBox(height: 4),
-                    _buildPaymentRow(order.modePaiement),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
+            // ← LES BOUTONS SONT EN DEHORS DU GESTUREDETECTOR
             const Divider(height: 1, color: Color(0xFFF0EDE9)),
             const SizedBox(height: 12),
             _buildActions(order),
@@ -437,7 +456,6 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Onglets
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
             child: SingleChildScrollView(
@@ -471,8 +489,6 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
               ),
             ),
           ),
-
-          // Liste commandes
           Expanded(
             child: FutureBuilder<List<Order>>(
               future: futureOrders,
